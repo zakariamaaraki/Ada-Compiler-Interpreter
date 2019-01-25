@@ -1,0 +1,21 @@
+DATA i 0
+MESSAGE Saisir une valeur
+DATA MAX 0
+SCAN
+STORE MAX
+LABEL for
+PUSH 1
+LOAD i
+ADD
+STORE i
+LOAD i
+PRNT
+LOAD MAX
+LOAD i
+JNE for
+
+
+
+
+
+

@@ -1,0 +1,54 @@
+with Ada.Text_IO;
+with Ada.Integer_Text_IO;           use Ada.Integer_Text_IO;
+
+-- gcc -c greet.adb
+-- gnatmake Greet.adb
+
+procedure Greet is
+
+  X : Integer := 100+5-10;
+  Y : Integer := 3000;
+  Z : Integer := 20;
+  type Page_Num  is range 1..2;
+  type Color  is (White, Red, Yellow, Green, Blue, Brown, Black);
+  type Vector     is array(Integer  range <>) of Real;
+
+
+begin
+  
+-- Comment -> Loop
+     loop
+        --X := 10;
+        Put(X);
+        exit Until_Loop when true;
+     end loop ;
+
+-- Comment -> if
+     if 19 then
+        goto Layout_Error;
+     
+        Put(Z);
+     end if;
+
+
+
+-- Comment -> Case
+
+
+  case Today is
+     when Mon            => Compute_Initial_Balance;
+     when Fri            => Compute_Closing_Balance;
+     when Tue            => Generate_Report(Today);
+     when Sat            => null;
+  end case;
+
+
+-- Comment -> for loop
+for J in 1..5 loop     --  works even with a null range
+   
+      Put(2+3);
+   
+end loop;
+ X:=199;
+
+end Greet;
