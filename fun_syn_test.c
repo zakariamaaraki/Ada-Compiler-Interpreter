@@ -9,6 +9,8 @@
 FILE* file;
 listinstvalueType* list_inst;
 listinstvalueType* list_inst_if;
+listinstvalueType* list_inst_else;
+listinstvalueType* list_inst_tmp;
 char nomToken[30];
 char idfName[30];
 namevalue TS[100];
@@ -220,6 +222,7 @@ void compound_statement() {
 }
 
 void if_statement() {	
+  int type_inst=0;
   AST ast1;	
   matchToken(T_if);
   expression();
@@ -229,30 +232,83 @@ void if_statement() {
   list_inst_if=list_inst;
   list_inst=NULL;
   sequence_statement();
+  list_inst_tmp=list_inst;
+  list_inst=list_inst_if;
+  list_inst_if=list_inst_tmp;
   while (token.type == T_elsif) {
     scanToken();
     expression();
     ast1=ast;
     ast=NULL;
     matchToken(T_then);
+    list_inst_if=list_inst;
+    list_inst=NULL;
     sequence_statement();
+	list_inst_tmp=list_inst;
+	list_inst=list_inst_if;
+	list_inst_if=list_inst_tmp;
+	           if(type_inst==0){
+			  instvalueType* p=creer_instruction_if(ast1, list_inst_if, NULL);
+			  list_inst_if=NULL;
+
+			  if(list_inst==NULL){
+			  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
+			  		list_inst->first=*p;
+			  }
+			  else{
+			  	inserer_inst_en_queue(list_inst,*p);
+			  }
+		  }
+		  else{
+		  	  instvalueType* p=creer_instruction_if(ast1, list_inst_if, list_inst_else);
+			  list_inst_if=NULL;
+			  list_inst_else=NULL;
+			  if(list_inst==NULL){
+			  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
+			  		list_inst->first=*p;
+			  }
+			  else{
+			  	inserer_inst_en_queue(list_inst,*p);
+			  }
+		  }
+    
   }
   if(token.type == T_else) {
+  	type_inst=1;
     scanToken();
+    list_inst_else=list_inst;
+    list_inst=NULL;
     sequence_statement();
+    list_inst_tmp=list_inst;
+    list_inst=list_inst_else;
+    list_inst_else=list_inst_tmp;
   }
 
-  instvalueType* p=creer_instruction_if(ast1, list_inst, NULL);
-  list_inst=list_inst_if;
-  list_inst_if=NULL;
+  if(type_inst==0){
+	  instvalueType* p=creer_instruction_if(ast1, list_inst_if, NULL);
+	  list_inst_if=NULL;
 
-  if(list_inst==NULL){
-  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
-  		list_inst->first=*p;
+	  if(list_inst==NULL){
+	  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
+	  		list_inst->first=*p;
+	  }
+	  else{
+	  	inserer_inst_en_queue(list_inst,*p);
+	  }
   }
   else{
-  	inserer_inst_en_queue(list_inst,*p);
+  	  instvalueType* p=creer_instruction_if(ast1, list_inst_if, list_inst_else);
+	  list_inst_if=NULL;
+	  list_inst_else=NULL;
+	  if(list_inst==NULL){
+	  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
+	  		list_inst->first=*p;
+	  }
+	  else{
+	  	inserer_inst_en_queue(list_inst,*p);
+	  }
   }
+  
   
   
   matchToken(T_end);
@@ -315,10 +371,10 @@ void loop_statement() {
   if(token.type == T_while) {
     scanToken();
     expression();
-    type_instr=2;
+    type_instr=2; //T_while
   }
   else if(token.type == T_for) {
-  	type_instr=1;
+  	type_instr=1; //T_for
     scanToken();
     matchToken(T_IDENTIFIER);
     strcpy(TS[n].name,nomToken);TS[n].value=0;
@@ -352,7 +408,7 @@ void loop_statement() {
   list_inst=list_inst_for;
   list_inst_for=tmp;
       if(type_instr==1){
-	      	p=creer_instruction_for(indexVar(nomVariable,TS,n), ast1, ast2, reverse ,tmp);
+	       p=creer_instruction_for(indexVar(nomVariable,TS,n), ast1, ast2, reverse ,tmp);
 		  if(list_inst==NULL){
 		  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
 		  		list_inst->first=*p;
@@ -362,7 +418,15 @@ void loop_statement() {
 		  }
       }
       else if(type_instr==0){
-      	
+      		//T_Loop
+      	  p=creer_instruction_loop(tmp);
+		  if(list_inst==NULL){
+		  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
+		  		list_inst->first=*p;
+		  }
+		  else{
+		  	inserer_inst_en_queue(list_inst,*p);
+		  }
       }
   	  
 	  
@@ -650,7 +714,20 @@ void exit_statement() {
   matchToken(T_exit);
 
   if(token.type == T_IDENTIFIER) matchToken(T_IDENTIFIER);
-  if(token.type == T_when)  {matchToken(T_when); expression();}
+  if(token.type == T_when)  {
+  		matchToken(T_when); 
+  		expression(); 
+  		instvalueType* inst=creer_instruction_exit(ast);
+		  if(list_inst==NULL){
+				    list_inst=(listinstvalueType*)malloc(sizeof(listinstvalueType));
+				    list_inst->first=*inst;
+				    list_inst->next=NULL;
+		  }	
+		  else {
+				    inserer_inst_en_queue(list_inst, *inst);
+		  }
+		  ast=NULL;
+  }
   matchToken(T_PV);
 }
 
@@ -863,7 +940,9 @@ void term_cat() {
 void term() {
   factor();
   switch (token.type) {
-    case T_MULT: case T_DIV: case T_mod: case T_rem: scanToken();  term();
+    case T_MULT: ast=creer_noeud_operation(atoi(token.val.stringValue), ast, NULL, mult);scanToken();  term(); break;
+    case T_DIV: ast=creer_noeud_operation(atoi(token.val.stringValue), ast, NULL, _div);scanToken();  term(); break;
+    case T_mod: case T_rem: scanToken();  term();
   }
 }
 

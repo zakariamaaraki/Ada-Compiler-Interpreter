@@ -1,7 +1,7 @@
 #include "ast.h"
 
 
-typedef enum {PrintExp, Message, DECL, PrintIdf, PrintString, AssignArith, IfThenArith, IfThenElseArith, For, Loop, While, Goto} Type_INST ;
+typedef enum {Exit, PrintExp, Message, DECL, PrintIdf, PrintString, AssignArith, IfThenArith, IfThenElseArith, For, Loop, While, Goto} Type_INST ;
 
 typedef struct INST {
   Type_INST typeinst;
@@ -30,6 +30,7 @@ typedef struct INST {
       struct LIST_INST * thenlinst; // then list of instructions
       struct LIST_INST * elselinst; // else list of instructions
     } ifnode;
+    // IF ... THEN 
       //for
     struct {
       int rangvar; // indice de l'index de la boucle
@@ -56,6 +57,11 @@ typedef struct INST {
     	char name[30];
     	double value;
     }declnode;
+    //exit
+    struct {
+    	AST cond;
+    }exitnode;
+
   } node;
 } instvalueType;
 
@@ -68,6 +74,7 @@ typedef struct LIST_INST {
 instvalueType* creer_instruction_print(int rangvar);
 instvalueType* creer_instruction_message(char* message);
 instvalueType* creer_instruction_print_exp(AST ast);
+instvalueType* creer_instruction_exit(AST cond);
 instvalueType* creer_instruction_decl(double value, char* name);
 instvalueType* creer_instruction_affectation(int rangvar, AST past);
 instvalueType* creer_instruction_if( AST past, listinstvalueType* plistthen, listinstvalueType* plistelse);

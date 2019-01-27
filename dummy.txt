@@ -6,7 +6,7 @@ with Ada.Integer_Text_IO;           use Ada.Integer_Text_IO;
 
 procedure Greet is
 
-  X : Integer := 100+5-10;
+  X : Integer := 100*5-10/60;
   Y : Integer := 3000;
   Z : Integer := 20;
   type Page_Num  is range 1..2;
@@ -20,14 +20,18 @@ begin
      loop
         --X := 10;
         Put(X);
-        exit Until_Loop when true;
+        exit Until_Loop when 1;
      end loop ;
 
 -- Comment -> if
-     if 19 then
+     if 0 then
         goto Layout_Error;
      
         Put(Z);
+     elsif 1 then
+        Put(10+15);   
+     else 
+		Put(X);  
      end if;
 
 

@@ -111,6 +111,13 @@ instvalueType* creer_instruction_loop(listinstvalueType* pplistloop){
 
 }
 
+instvalueType* creer_instruction_exit(AST cond){
+
+	instvalueType* inst = (instvalueType *) malloc (sizeof(instvalueType));
+    inst->node.exitnode.cond = cond;
+	inst->typeinst = Exit;
+}
+
 instvalueType* creer_instruction_goto(char* label){
 
 	instvalueType* inst = (instvalueType *) malloc (sizeof(instvalueType));
@@ -145,6 +152,7 @@ void generer_pseudo_code_inst(instvalueType p, FILE* file){
   static int whilelabel_index = 0;
   static int looplabel_index = 0;
   static int iflabel_index=0;
+  static int exitlabel_index=0;
 
   switch(p.typeinst){
   	case PrintIdf :
@@ -154,7 +162,16 @@ void generer_pseudo_code_inst(instvalueType p, FILE* file){
 	    break;
 	case Message :
 		fprintf(file,"MESSAGE %s\n",p.node.messagenode.message);
-		break;    
+		break; 
+	case Exit : 
+		generer_pseudo_code_ast(p.node.exitnode.cond,file);	 
+		fprintf(file,"PUSH 0\n");
+		fprintf(file,"JNE exit%d\n",exitlabel_index);
+		fprintf(file,"JMP endexit%d\n",exitlabel_index);
+		fprintf(file,"LABEL exit%d\n",exitlabel_index);
+		fprintf(file,"JMP endloop%d\n",looplabel_index);
+  		fprintf(file,"LABEL endexit%d\n",exitlabel_index);
+  		break;
 	case PrintExp:
 		generer_pseudo_code_ast(p.node.printExpnode.exp,file);
 		fprintf(file,"PRNT\n");
@@ -175,6 +192,17 @@ void generer_pseudo_code_inst(instvalueType p, FILE* file){
 	    generer_pseudo_code_list_inst(p.node.ifnode.thenlinst, file);
 	    fprintf(file,"LABEL ifFalse%d\n",iflabel_index);
 	    break;
+	case IfThenElseArith : 
+	    iflabel_index++;
+	    generer_pseudo_code_ast(p.node.ifnode.right,file);
+	    fprintf(file,"PUSH 0\n");
+	    fprintf(file,"JNE if%d\n",iflabel_index);
+	    fprintf(file,"JMP ifFalse%d\n",iflabel_index);
+	    fprintf(file,"LABEL if%d\n",iflabel_index);
+	    generer_pseudo_code_list_inst(p.node.ifnode.thenlinst, file);
+	    fprintf(file,"LABEL ifFalse%d\n",iflabel_index);
+	    generer_pseudo_code_list_inst(p.node.ifnode.elselinst, file);
+	    break;    
 	case For :
 	   forlabel_index++;
 	   if(p.node.fornode.reverse==0)generer_pseudo_code_ast(p.node.fornode.borneinf,file);
@@ -226,7 +254,8 @@ void generer_pseudo_code_inst(instvalueType p, FILE* file){
 	   fprintf(file,"LABEL loop%d ",looplabel_index);
 	   fprintf(file,"\n");
 	   generer_pseudo_code_list_inst(p.node.loopnode.loopbodylinst, file);
-       fprintf(file,"JMP loop%d ",looplabel_index);   
+       fprintf(file,"JMP loop%d ",looplabel_index); 
+       fprintf(file,"LABEL endloop%d ",looplabel_index);   
 	   fprintf(file,"\n");
 	   break; 
 	case While:
