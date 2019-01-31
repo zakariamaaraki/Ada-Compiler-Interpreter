@@ -4,9 +4,9 @@
 
 typedef enum {NB=0, _IDF = 1, OP=2} Type_Exp ; // IDF is also a token !!
 
-typedef enum {Int, Float, Double} Type;
+typedef enum {Int, Float, Double, _Boolean} Type;
 
-typedef enum {plus, minus, mult, _div} Type_Op; // div est un mot réservé
+typedef enum {plus, minus, mult, _div, sup, inf, eg, supEg, infEg} Type_Op; // div est un mot réservé
 
 struct Exp ; /* pré déclaration de la structure de stockage d'une expression */
 

@@ -91,6 +91,11 @@ void loadPseudoCode(char* nameFile){
 			fscanf(file,"%s",var);
 			strcpy((pc->first).param.label_name,var);
 		}
+		else if(strcmp(codop,"JGE")==0){
+			(pc->first).codop=JGE;
+			fscanf(file,"%s",var);
+			strcpy((pc->first).param.label_name,var);
+		}
 		else if(strcmp(codop,"JNE")==0){
 			(pc->first).codop=JNE;
 			fscanf(file,"%s",var);
@@ -229,6 +234,11 @@ void interpreter_pseudo_code_inst(pseudoinstruction pci) {
 			op2=depiler(&VM);
 			if(op1>op2)interpreter_pseudo_code_inst(rechercher_instruction_au_label(pci.param.label_name));
 			break ;	
+		case JGE :
+			op1=depiler(&VM);
+			op2=depiler(&VM);
+			if(op1>=op2)interpreter_pseudo_code_inst(rechercher_instruction_au_label(pci.param.label_name));
+			break ;	
 		case LABEL :
 			//rien faire;
 			break;	
@@ -244,12 +254,13 @@ void interpreter_pseudo_code_inst(pseudoinstruction pci) {
 		case PUSH : 
 			empiler(&VM,pci.param._const);
 		    break;	
-		case DATA :
+		case DATA :		
 			data(pci.param.nv.name,pci.param.nv.value);
 			break;	
 		case SCAN :
 		    scanf("%lf",&op1);
 		    empiler(&VM,op1);
+		    break;
 		case MESSAGE : 
 		 	printf("%s",pci.param.var);
 		 	break;    	

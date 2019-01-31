@@ -201,6 +201,24 @@ void decimal_literal() {
   int in = 0;
   int clear = 0;
   char c = fgetc(fp);
+
+
+  //traitement des Label !!-----------------------------------------------------------
+  if(c=='<'){
+      c = fgetc(fp);
+      if(c=='<'){
+          int i=0;
+          c=fgetc(fp);
+          while(c!=' ' && c!='\r' && c!='\n' ){token.val.stringValue[i]=c;c=fgetc(fp);i++;}
+          if(token.val.stringValue[i-1]!='>' || token.val.stringValue[i-1]!='>')printf("Label must finish with : >>");
+          token.val.stringValue[i-2]='\0';
+          label();
+          decimal_literal();
+      }
+      else {ungetc(c,fp);c='<';}
+  }
+  //-----------------------------------------------------------------------------------
+
   if(c != 'E' && c!= '.' && result) ungetc(c,fp);
   if(c == '.' && result) {
     str[i] = c; i++;
@@ -236,6 +254,7 @@ void decimal_literal() {
   }
   i = 0;
   memset(str, '\0' , 1024);
+
 }
 
 
@@ -369,7 +388,6 @@ int scanToken() {
   if(fp == NULL) return -1;
   token.type = T_UNKNOWN;
   memset(token.val.stringValue , '\0' , 100);
-
   if(token.type == T_UNKNOWN) decimal_literal();
   if(token.type == T_UNKNOWN) identifier_name();
   if(token.type == T_UNKNOWN) string_literal();

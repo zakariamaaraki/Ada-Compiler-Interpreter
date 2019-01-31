@@ -124,7 +124,7 @@
 
 
 struct token_t {
-  int type;
+  int type; //0 : Integer, 1:Float, 2:Double, 3:Boolean
   union {
     char stringValue[100];
     int intValue;
@@ -193,3 +193,5 @@ void enumeration_literal_specification();
 void component_list() ;
 void component_item();
 void type_declaration();
+
+void label();

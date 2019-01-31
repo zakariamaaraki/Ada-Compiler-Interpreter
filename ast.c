@@ -58,6 +58,9 @@ AST creer_noeud_operation(char op, AST arbre_g, AST arbre_d, Type type){
 // génère le pseudo-code relatif à l'AST
 // précondition ast <> NULL
  void generer_pseudo_code_ast(AST ast, FILE* file){
+  static int supLabel=0;
+  static int infLabel=0;
+  static int egLabel=0;
 
   switch(ast->typeexp) {
   case NB :
@@ -90,6 +93,72 @@ AST creer_noeud_operation(char op, AST arbre_g, AST arbre_d, Type type){
       fprintf(file,"SWAP \n");
       fprintf(file,"DIV \n"); // opération non commutative
       break;
+
+    case supEg : 
+      supLabel++;
+      fprintf(file,"SWAP \n");
+      fprintf(file,"SUB \n"); // opération non commutative
+      fprintf(file,"PUSH 0.000000\n");
+      fprintf(file,"SWAP\n");
+      fprintf(file,"JGE supLabelTrue%d\n",supLabel); // opération non commutative
+      fprintf(file,"PUSH 0.000000\n");
+      fprintf(file,"JMP supLabelFalse%d\n",supLabel);
+      fprintf(file,"LABEL supLabelTrue%d\n",supLabel);
+      fprintf(file,"PUSH 1.000000\n");
+      fprintf(file,"LABEL supLabelFalse%d\n",supLabel);	
+      break;  
+
+    case sup : 
+      supLabel++;
+      fprintf(file,"SWAP \n");
+      fprintf(file,"SUB \n"); // opération non commutative
+      fprintf(file,"PUSH 0.000000\n");
+      fprintf(file,"SWAP\n");
+      fprintf(file,"JG supLabelTrue%d\n",supLabel); // opération non commutative
+      fprintf(file,"PUSH 0.000000\n");
+      fprintf(file,"JMP supLabelFalse%d\n",supLabel);
+      fprintf(file,"LABEL supLabelTrue%d\n",supLabel);
+      fprintf(file,"PUSH 1.000000\n");
+      fprintf(file,"LABEL supLabelFalse%d\n",supLabel);	
+      break;
+
+    case inf : 
+      infLabel++;
+      fprintf(file,"SWAP \n");
+      fprintf(file,"SUB \n"); // opération non commutative
+      fprintf(file,"PUSH 0.000000\n");
+      fprintf(file,"SWAP\n");
+      fprintf(file,"JGE infLabelTrue%d\n",infLabel); // opération non commutative
+      fprintf(file,"PUSH 1.000000\n");
+      fprintf(file,"JMP infLabelFalse%d\n",infLabel);
+      fprintf(file,"LABEL infLabelTrue%d\n",infLabel);
+      fprintf(file,"PUSH 0.000000\n");
+      fprintf(file,"LABEL infLabelFalse%d\n",infLabel);	
+      break; 
+
+    case infEg : 
+      infLabel++;
+      fprintf(file,"SWAP \n");
+      fprintf(file,"SUB \n"); // opération non commutative
+      fprintf(file,"PUSH 0.000000\n");
+      fprintf(file,"SWAP\n");
+      fprintf(file,"JG infLabelTrue%d\n",infLabel); // opération non commutative
+      fprintf(file,"PUSH 1.000000\n");
+      fprintf(file,"JMP infLabelFalse%d\n",infLabel);
+      fprintf(file,"LABEL infLabelTrue%d\n",infLabel);
+      fprintf(file,"PUSH 0.000000\n");
+      fprintf(file,"LABEL infLabelFalse%d\n",infLabel);	
+      break;  
+
+      case eg : 
+      egLabel++;
+      fprintf(file,"JNE egLabelTrue%d\n",egLabel); // opération non commutative
+      fprintf(file,"PUSH 1.000000\n");
+      fprintf(file,"JMP egLabelFalse%d\n",egLabel);
+      fprintf(file,"LABEL LabelTrue%d\n",egLabel);
+      fprintf(file,"PUSH 0.000000\n");
+      fprintf(file,"LABEL egLabelFalse%d\n",egLabel);	
+      break;  
     }
 
   }

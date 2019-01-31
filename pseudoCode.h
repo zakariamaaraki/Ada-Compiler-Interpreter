@@ -2,11 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef enum {ADD, SUB, DIV, DUPL, JMP, JNE, JG, LABEL, LOAD, MULT, POP, PRNT, PUSH, STORE, SWAP, DATA, SCAN, MESSAGE} CODOP;
+typedef enum {ADD, SUB, DIV, DUPL, JMP, JNE, JGE, JG, LABEL, LOAD, MULT, POP, PRNT, PUSH, STORE, SWAP, DATA, SCAN, MESSAGE} CODOP;
 
 typedef struct {
 	char name[30];
 	double value;
+	int type; // 0 int, 1 double, 3 float
 }namevalue;
 
 typedef union {

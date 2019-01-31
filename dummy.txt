@@ -7,52 +7,45 @@ with Ada.Integer_Text_IO;           use Ada.Integer_Text_IO;
 procedure Greet is
 
   X : Integer := 100*5-10/60;
-  Y : Integer := 3000;
+  Y : Float := 3000;
   Z : Integer := 20;
+  J : Bolean:= 100;
   type Page_Num  is range 1..2;
   type Color  is (White, Red, Yellow, Green, Blue, Brown, Black);
   type Vector     is array(Integer  range <>) of Real;
 
 
 begin
-  
--- Comment -> Loop
-     loop
-        --X := 10;
-        Put(X);
-        exit Until_Loop when 1;
-     end loop ;
+  --goto endLayout;
 
+   X:=10;
+   Y:=12;
 -- Comment -> if
-     if 0 then
-        goto Layout_Error;
-     
-        Put(Z);
-     elsif 1 then
-        Put(10+15);   
+     if  1 <= 2  then     
+        Y:=27*3;
+        --Put(Y);
      else 
-		Put(X);  
+		Put(11);  
      end if;
 
+     while X>0 loop
+     	--Put(X);
+     	X:=X-1;
+     end loop;	
+
+     X:=Y;
+
+     loop
+     	Put(X);
+     	X:=X-1;
+        exit Label when X<=5;
+     end loop;   
+
+     for X in 1..10 loop
+     	Put("Salut");
+     end loop;		
 
 
--- Comment -> Case
 
-
-  case Today is
-     when Mon            => Compute_Initial_Balance;
-     when Fri            => Compute_Closing_Balance;
-     when Tue            => Generate_Report(Today);
-     when Sat            => null;
-  end case;
-
-
--- Comment -> for loop
-for J in 1..5 loop     --  works even with a null range
-   
-      Put(2+3);
-   
-end loop;
- X:=199;
 
 end Greet;

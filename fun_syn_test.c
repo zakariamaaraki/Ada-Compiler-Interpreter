@@ -10,6 +10,7 @@ FILE* file;
 listinstvalueType* list_inst;
 listinstvalueType* list_inst_if;
 listinstvalueType* list_inst_else;
+listinstvalueType* list_inst_elsif;
 listinstvalueType* list_inst_tmp;
 char nomToken[30];
 char idfName[30];
@@ -28,7 +29,6 @@ double valeur(char* nomToken){
 
 
 int matchToken(int expected) {
-
   if(token.type != expected) {
     printf("** Syntax error, expecting: ");
     getMacro(expected);
@@ -121,7 +121,11 @@ void parameter_specification() {
   switch (token.type) {
     case T_in: case T_out: scanToken();
   }
+
   matchToken(T_IDENTIFIER);
+  
+  
+
   if(token.type == T_ASSIGN) {
     scanToken();
     expression();
@@ -235,44 +239,25 @@ void if_statement() {
   list_inst_tmp=list_inst;
   list_inst=list_inst_if;
   list_inst_if=list_inst_tmp;
+
+
   while (token.type == T_elsif) {
     scanToken();
     expression();
     ast1=ast;
     ast=NULL;
     matchToken(T_then);
-    list_inst_if=list_inst;
+    list_inst_elsif=list_inst;
     list_inst=NULL;
     sequence_statement();
 	list_inst_tmp=list_inst;
-	list_inst=list_inst_if;
-	list_inst_if=list_inst_tmp;
-	           if(type_inst==0){
-			  instvalueType* p=creer_instruction_if(ast1, list_inst_if, NULL);
-			  list_inst_if=NULL;
+	list_inst=list_inst_elsif;
+	list_inst_elsif=list_inst_tmp;
 
-			  if(list_inst==NULL){
-			  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
-			  		list_inst->first=*p;
-			  }
-			  else{
-			  	inserer_inst_en_queue(list_inst,*p);
-			  }
-		  }
-		  else{
-		  	  instvalueType* p=creer_instruction_if(ast1, list_inst_if, list_inst_else);
-			  list_inst_if=NULL;
-			  list_inst_else=NULL;
-			  if(list_inst==NULL){
-			  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
-			  		list_inst->first=*p;
-			  }
-			  else{
-			  	inserer_inst_en_queue(list_inst,*p);
-			  }
-		  }
+		  
     
   }
+
   if(token.type == T_else) {
   	type_inst=1;
     scanToken();
@@ -371,13 +356,27 @@ void loop_statement() {
   if(token.type == T_while) {
     scanToken();
     expression();
+    ast1=ast;
+    ast=NULL;
     type_instr=2; //T_while
   }
   else if(token.type == T_for) {
   	type_instr=1; //T_for
     scanToken();
+
+    //semantique----------------------------
+	    	int i=0; 
+			while(strcmp(TS[i].name,token.val.stringValue)!=0 && i<n)i++;
+			if(i>=n){
+				fprintf(stderr, "the variable %s is not declared \n",token.val.stringValue);exit(-1);
+			}
+	//------------------------------------
+
+    
     matchToken(T_IDENTIFIER);
     strcpy(TS[n].name,nomToken);TS[n].value=0;
+    TS[n].type=0;
+    // for ==> Integer
     strcpy(nomVariable,nomToken);
     n++;
 	  p=creer_instruction_decl(0,nomVariable);
@@ -420,6 +419,17 @@ void loop_statement() {
       else if(type_instr==0){
       		//T_Loop
       	  p=creer_instruction_loop(tmp);
+		  if(list_inst==NULL){
+		  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
+		  		list_inst->first=*p;
+		  }
+		  else{
+		  	inserer_inst_en_queue(list_inst,*p);
+		  }
+      }
+      else if(type_instr==2){
+      		//T_While
+      	  p=creer_instruction_while(ast1,tmp);
 		  if(list_inst==NULL){
 		  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
 		  		list_inst->first=*p;
@@ -475,7 +485,9 @@ void basic_declaration() {
   }
 }
 
-void type_declaration() {
+void type_declaration() {	
+
+
   matchToken(T_type);
   matchToken(T_IDENTIFIER);
   matchToken(T_is);
@@ -666,7 +678,16 @@ void component_item() {
 }
 
 void object_number_declaration() {
+  
+
   matchToken(T_IDENTIFIER);
+
+  //semantique----------------------------
+  int i;
+  for(i=0;i<n;i++){
+  	if(strcmp(TS[i].name,nomToken)==0){fprintf(stderr, "the variable %s is declared twice \n",nomToken);exit(-1);}
+  }
+  //------------------------------------
   strcpy(TS[n].name,nomToken);TS[n].value=0;
   instvalueType* p=creer_instruction_decl(TS[n].value,TS[n].name);
   if(list_inst==NULL){
@@ -676,8 +697,21 @@ void object_number_declaration() {
   else{
   	inserer_inst_en_queue(list_inst,*p);
   }
-  n++;printf("DEEEEEECLLLLLL %d\n",n);
+  printf("DEEEEEECLLLLLL %d\n",n);
   matchToken(T_2PT);
+
+    	
+  //Semantique
+	if(strcmp(token.val.stringValue,"Integer")==0)TS[n].type=0;
+	else if(strcmp(token.val.stringValue,"Float")==0)TS[n].type=1;
+	else if(strcmp(token.val.stringValue,"Double")==0)TS[n].type=2;
+	else if(strcmp(token.val.stringValue,"Boolean")==0)TS[n].type=3;
+	else TS[n].type=4;
+  //----------------------------------------------------------
+
+  n++;
+
+
   switch (token.type) {
     case T_IDENTIFIER: matchToken(T_IDENTIFIER); break;
     case T_constant : matchToken(T_constant); break;
@@ -713,7 +747,10 @@ void null_statement() {
 void exit_statement() {
   matchToken(T_exit);
 
-  if(token.type == T_IDENTIFIER) matchToken(T_IDENTIFIER);
+  if(token.type == T_IDENTIFIER) {
+
+  	matchToken(T_IDENTIFIER);
+  }	
   if(token.type == T_when)  {
   		matchToken(T_when); 
   		expression(); 
@@ -757,7 +794,18 @@ void goto_statement() {
 void param() {
 
   if(token.type == T_IDENTIFIER) {
+
     matchToken(T_IDENTIFIER);
+
+        
+    //semantique----------------------------
+	  int i=0;
+	  while(strcmp(TS[i].name,nomToken)!=0 && i<n)i++;
+	  if(i>=n){
+	  		fprintf(stderr, "the variable %s is not declared \n",nomToken);exit(-1);
+	  }
+  //------------------------------------
+
     if(token.type != T_EG) {
       return;
 
@@ -841,6 +889,14 @@ void procedure_call_or_assign_statement() {
 	    }
 	    else if(token.type == T_ASSIGN) {
 
+ 		  //semantique----------------------------
+	    	int i=0; 
+			while(strcmp(TS[i].name,nomVariable)!=0 && i<n)i++;
+			if(i>=n){
+				fprintf(stderr, "the variable %s is not declared \n",nomVariable);exit(-1);
+			}
+		  //------------------------------------
+
 	      scanToken();
 	      expression();
 	      inst=creer_instruction_affectation(indexVar(nomVariable,TS,n), ast);
@@ -898,12 +954,13 @@ void relation() {
 //simple_expression ::= [ ( "+" | "-" ) ] term { ( "+" | "-" | "&" ) term }*
 
 void simple_expression() {
+  int i=0;
   instvalueType* inst;
   switch (token.type) {
     case T_PLUS:  case T_MOINS: scanToken();
     case T_NUMERIC:  if(ast==NULL)ast=creer_feuille_nombre(atof(token.val.stringValue), Int);
                      else ast->noeud.op.expression_droite=creer_feuille_nombre(atof(token.val.stringValue), Int);
-                     printf("========>%s\n",token.val.stringValue);message=2;
+                     printf("========>%s\n",token.val.stringValue);message=2; term(); term_cat(); break;
     case T_null: 
     case T_STRING: if(message==1){inst=creer_instruction_message(token.val.stringValue);
 				    if(list_inst==NULL){
@@ -914,8 +971,18 @@ void simple_expression() {
 						    else {
 						    	inserer_inst_en_queue(list_inst, *inst);
 						    }	}
+						    term(); term_cat(); break;
     case T_PO:
-    case T_IDENTIFIER:term(); term_cat(); break;
+    case T_IDENTIFIER: //semantique----------------------------
+						  while(strcmp(TS[i].name,token.val.stringValue)!=0 && i<n)i++;
+						  if(i>=n){
+						  		fprintf(stderr, "the variable %s is not declared \n",token.val.stringValue);exit(-1);
+						  }
+					  //------------------------------------
+
+    				 if(ast==NULL)ast=creer_feuille_idf(token.val.stringValue, TS[i].type);
+                     else ast->noeud.op.expression_droite=creer_feuille_idf(token.val.stringValue, TS[i].type); 
+                     term(); term_cat(); break;
     default: printf("Expecting : T_NULL, T_NUMERIC, T_STRING, T_PO, T_IDENTIFIER instead of ");getMacro(token.type); exit(-1);
   }
 }
@@ -928,9 +995,13 @@ void term_cat() {
     switch (token.type) {
       case T_PLUS:  ast=creer_noeud_operation(atoi(token.val.stringValue), ast, NULL, plus); scanToken();term(); term_cat(); break;
       case T_MOINS: ast=creer_noeud_operation(atoi(token.val.stringValue), ast, NULL, minus); scanToken(); term(); term_cat();break;
-      case T_CONCAT:   term(); term_cat();
-      /*case T_EG: case T_DIV: case T_SUP:
-      case T_SUPEG: case T_INF: case T_INFEG:   simple_expression();break;
+      case T_CONCAT:   term(); term_cat();break;
+      case T_SUPEG: ast=creer_noeud_operation(atoi(token.val.stringValue), ast, NULL, supEg);  scanToken(); term(); term_cat(); break;
+      case T_INF:   ast=creer_noeud_operation(atoi(token.val.stringValue), ast, NULL, inf); scanToken(); term(); term_cat(); break; //simple_expression();break;
+      case T_INFEG: ast=creer_noeud_operation(atoi(token.val.stringValue), ast, NULL, infEg); scanToken(); term(); term_cat(); break;
+      case T_EG:    ast=creer_noeud_operation(atoi(token.val.stringValue), ast, NULL, eg); scanToken(); term(); term_cat(); break;
+      case T_SUP:   ast=creer_noeud_operation(atoi(token.val.stringValue), ast, NULL, sup); scanToken(); term(); term_cat(); break;
+      /*case T_DIV: 
       default: printf("Expecting one of the following: T_PLUS, T_MOINS, T_CONCAT, T_DIV, T_SUP, T_SUPEG, T_INF, T_INFEG instead of: " );
                getMacro();
       */
@@ -973,6 +1044,21 @@ void factor() {
     default: printf("Expecting : T_abs, T_not, T_NULL, T_NUMERIC, T_STRING, T_PO, T_IDENTIFIER instead of: " );
               getMacro(token.type); exit(-1);
   }
+}
+
+
+void label(){
+	instvalueType* inst;
+	inst=creer_instruction_label(token.val.stringValue);
+		    if(list_inst==NULL){
+		    	list_inst=(listinstvalueType*)malloc(sizeof(listinstvalueType));
+		    	list_inst->first=*inst;
+		    	list_inst->next=NULL;
+		    }	
+		    else {
+		    	inserer_inst_en_queue(list_inst, *inst);
+		    }
+	
 }
 
 
