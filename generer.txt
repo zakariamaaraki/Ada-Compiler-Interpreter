@@ -73,6 +73,24 @@ PUSH 12.000000
 STORE Y 
 ----------------------
 
+LOAD X
+LOAD X
+PUSH 2.000000
+MULT 
+JNE caselabel1.0
+----------------------
+Affichage de X
+----------------------
+LOAD X
+PRNT 
+----------------------
+
+LABEL caselabel1.0
+LOAD X
+PUSH 8.000000
+JNE caselabel1.1
+MESSAGE Salut
+LABEL caselabel1.1
 ----------------------
  Cond 1 : if 
 ----------------------
@@ -96,7 +114,7 @@ LABEL if1
  Affectation 
 ----------------------
 LOAD Y
-PUSH 0.000000
+PUSH 2.000000
 SWAP 
 DIV 
 STORE Y 

@@ -170,6 +170,22 @@ instvalueType* creer_instruction_goto(char* label){
 
 }
 
+instvalueType* creer_instruction_case(AST ast, cases* c, int nbCases, listinstvalueType* other){
+
+	int i;
+	instvalueType* inst = (instvalueType *) malloc (sizeof(instvalueType));
+ 
+	inst->typeinst = Case;
+	inst->node.switchnode.ast=ast;
+    inst->node.switchnode.nbCases=nbCases;
+    for(i=0;i<nbCases;i++){
+    	inst->node.switchnode.c[i]=c[i];
+    }
+
+	return inst;
+
+}
+
 instvalueType* creer_instruction_label(char* label){
 
 	instvalueType* inst = (instvalueType *) malloc (sizeof(instvalueType));
@@ -340,11 +356,11 @@ void generer_pseudo_code_inst(instvalueType p, FILE* file){
 	case Case:	
 		caselabel_index++;
 		for(i=0;i<p.node.switchnode.nbCases;i++){
-			fprintf(file,"LOAD %s ",name(p.node.switchnode.rangvar,TS));
-			fprintf(file,"PUSH %lf\n",p.node.switchnode.c[i].val);
-			fprintf(file,"JNE caselabel%d.%lf\n",caselabel_index,p.node.switchnode.c[i].val);
+			generer_pseudo_code_ast(p.node.switchnode.ast,file);
+			generer_pseudo_code_ast(p.node.switchnode.c[i].ast,file);
+			fprintf(file,"JNE caselabel%d.%d\n",caselabel_index,i);
 			generer_pseudo_code_list_inst(p.node.switchnode.c[i].caselinst, file);
-			fprintf(file,"LABEL caselabel%d.%lf\n",caselabel_index,p.node.switchnode.c[i].val);
+			fprintf(file,"LABEL caselabel%d.%d\n",caselabel_index,i);
 		}
 		break;     
 	case Goto:

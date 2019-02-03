@@ -24,6 +24,11 @@ listinstvalueType* list_inst_if;
 listinstvalueType* list_inst_else;
 listinstvalueType* list_inst_elsif;
 listinstvalueType* list_inst_tmp;
+listinstvalueType* list_inst_case;
+listinstvalueType* list_inst_other;
+cases c[100];
+int nbCase=0;
+AST astCase;
 char nomToken[30];
 char idfName[30];
 namevalue TS[100];
@@ -308,12 +313,19 @@ void if_statement() {
 
 
 void case_statement() {
-
+  AST saveAst;
   matchToken(T_case);
   expression();
+  saveAst=ast;
+  ast=NULL;
   matchToken(T_is);
-  case_statement_alt();
+  nbCase=0;
+  case_statement_alt(); 
   case_statement_alts();
+
+  instvalueType* p=creer_instruction_case(saveAst, c, nbCase,list_inst_other);
+  inserer_inst_en_queue(&list_inst,*p);
+
   matchToken(T_end);
   matchToken(T_case);
   matchToken(T_PV);
@@ -326,8 +338,10 @@ void case_statement_alt() {
   matchToken(T_when);
   switch (token.type) {
     case T_null: case T_NUMERIC: case T_STRING: case T_PO:
-    case T_IDENTIFIER: simple_expression(); matchToken(T_EG); matchToken(T_SUP); sequence_statement(); break;
-    case T_others: scanToken(); matchToken(T_EG); matchToken(T_SUP); sequence_statement();break;
+    case T_IDENTIFIER: simple_expression(); astCase=ast;ast=NULL;
+    		  matchToken(T_2PT);/*matchToken(T_EG); matchToken(T_SUP);*/list_inst_tmp=list_inst; list_inst=NULL; sequence_statement(); list_inst_case=list_inst; list_inst=list_inst_tmp;  c[nbCase].ast=astCase;
+  			 c[nbCase].caselinst=list_inst_case; nbCase++;break;
+    case T_others: scanToken();matchToken(T_2PT); /*matchToken(T_EG); matchToken(T_SUP);*/list_inst_tmp=list_inst; list_inst=NULL; sequence_statement(); list_inst_other=list_inst; list_inst=list_inst_tmp;break;
     default :printf("Syntax error expecting one of the following tokens: T_null, T_NUMERIC, T_STRING, T_PO, T_IDENTIFIER, T_others instead of :");
             getMacro(token.type);
   }
@@ -382,6 +396,7 @@ void loop_statement() {
 			else if(TS[i].type==3){
 				fprintf(stderr, "the variable %s is Boolean, variable in for loop must be Integer \n",token.val.stringValue);exit(-1);
 			}
+			
 	//------------------------------------
 
     

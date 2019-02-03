@@ -4,7 +4,7 @@
 typedef enum {Exit, PrintExp, Message, DECL, AffArray, DECLArray, PrintArray, PrintIdf, PrintString, AssignArith, IfThenArith, IfThenElseArith, Case, For, Loop, While, Goto, Label} Type_INST ;
 
 typedef struct{
-	double val;
+	AST ast;
 	struct LIST_INST* caselinst;
 }cases;
 
@@ -90,8 +90,9 @@ typedef struct INST {
     }exitnode;
     //case
     struct{
-    	int rangvar;
+    	AST ast;
     	cases c[100];
+    	struct LIST_INST * other;
     	int nbCases;
     }switchnode;
 
@@ -121,6 +122,7 @@ instvalueType* creer_instruction_while(AST cond, listinstvalueType* pplistwhile)
 instvalueType* creer_instruction_loop(listinstvalueType* pplistloop);
 instvalueType* creer_instruction_goto(char* label);
 instvalueType* creer_instruction_label(char* label);
+instvalueType* creer_instruction_case(AST ast, cases* c, int nbCases, listinstvalueType* other);
 
 void inserer_inst_en_queue(listinstvalueType** pp, instvalueType p);
 

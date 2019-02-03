@@ -19,9 +19,15 @@ begin
 
    X:=8;
    Y:=12;
+
+  case X is
+     when X*2 : Put(X);
+     when 8 : Put("Salut");
+  end case;
+
 -- Comment -> if
      if  1 <= 2  then     
-        Y:=Y/0;
+        Y:=Y/2;
         Put(Y);
         Put(A);
         A(2*4):=6;
