@@ -2,50 +2,56 @@ with Ada.Text_IO;
 with Ada.Integer_Text_IO;           use Ada.Integer_Text_IO;
 
 -- gcc -c greet.adb
--- gnatmake Greet.adb
+-- gnatmake Greet.adb 
+
 
 procedure Greet is
-
+  type Page_Num is array( range 1..10 ) of Double;
   X : Integer := 100*5-10/60;
   Y : Float := 3000;
   Z : Integer := 20;
-  J : Bolean:= 100;
-  type Page_Num  is range 1..2;
-  type Color  is (White, Red, Yellow, Green, Blue, Brown, Black);
-  type Vector     is array(Integer  range <>) of Real;
+  J : Boolean := true;  
+  A : Page_Num; 
 
 
 begin
   --goto endLayout;
 
-   X:=10;
+   X:=8;
    Y:=12;
 -- Comment -> if
      if  1 <= 2  then     
-        Y:=27*3;
-        --Put(Y);
+        Y:=Y/0;
+        Put(Y);
+        Put(A);
+        A(2*4):=6;
+        Put(A);
      else 
 		Put(11);  
      end if;
 
-     while X>0 loop
-     	--Put(X);
-     	X:=X-1;
-     end loop;	
-
-     X:=Y;
-
-     loop
+     while false loop
      	Put(X);
      	X:=X-1;
-        exit Label when X<=5;
-     end loop;   
+     	--X:=false;
+     	J:=false;
+     end loop;	
+
+     X:=10;
+     --J:=0;
+     loop
+     	Put(J);
+     	X:=X-1;
+        exit Label when true;
+     end loop;  
+
+     X:=100; 
 
      for X in 1..10 loop
-     	Put("Salut");
+     	Put(2);
      end loop;		
 
 
 
-
 end Greet;
+

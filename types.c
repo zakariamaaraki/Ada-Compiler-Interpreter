@@ -1,4 +1,4 @@
-#include "types.h"
+ #include "types.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,7 +6,6 @@
 
 extern namevalue TS[100];
 extern int n;
-
 
 instvalueType* creer_instruction_print(int rangvar){
 
@@ -18,13 +17,46 @@ instvalueType* creer_instruction_print(int rangvar){
 	return inst;
 }
 
-instvalueType* creer_instruction_decl(double value, char* name){
+instvalueType* creer_instruction_printArray(char* name){
+
+	instvalueType* inst = (instvalueType *) malloc (sizeof(instvalueType));
+
+	inst->typeinst = PrintArray;
+	strcpy(inst->node.printArraynode.name,name);
+	
+	return inst;
+}
+
+instvalueType* creer_instruction_decl(double value, char* name, char type){
 	instvalueType* inst = (instvalueType *) malloc (sizeof(instvalueType));
 
     inst->typeinst=DECL;
 	inst->node.declnode.value = value;
+	inst->node.declnode.type = type;
 	strcpy(inst->node.declnode.name,name);
 	
+	return inst;
+}
+
+instvalueType* creer_instruction_declArray(int bInf, int bSup, int type, char* nameVar){
+	instvalueType* inst = (instvalueType *) malloc (sizeof(instvalueType));
+
+    inst->typeinst=DECLArray;
+	inst->node.declArraynode.bInf = bInf;
+	inst->node.declArraynode.bSup = bSup;
+	inst->node.declArraynode.type= type;
+	strcpy(inst->node.declArraynode.nameVar,nameVar);
+	
+	return inst;
+}
+
+instvalueType* creer_instruction_affectationArray(char* nameArray, AST astTmp, AST ast){
+	instvalueType* inst = (instvalueType *) malloc (sizeof(instvalueType));
+
+    inst->typeinst=AffArray;
+	strcpy(inst->node.affArraynode.name,nameArray);
+	inst->node.affArraynode.left = astTmp;
+	inst->node.affArraynode.right= ast;
 	return inst;
 }
 
@@ -149,22 +181,27 @@ instvalueType* creer_instruction_label(char* label){
 
 }
 
-void inserer_inst_en_queue(listinstvalueType * pp, instvalueType p){
+void inserer_inst_en_queue(listinstvalueType** pp, instvalueType p){
   listinstvalueType* liste = (listinstvalueType*) malloc(sizeof(listinstvalueType));
   liste->first = p;
   liste->next = NULL;
 
-  if (pp->next == NULL) {
-    pp->next = liste;
-  }else{
-    listinstvalueType * pliste = pp;
-    
-    while(pliste->next != NULL) {
-      pliste = pliste->next;
-    }
-    
-    pliste->next = liste;
+  if(*pp==NULL){
+  	(*pp)=liste;
   }
+  else{
+	  if ((*pp)->next == NULL) {
+	    (*pp)->next = liste;
+	  }else{
+	    listinstvalueType * pliste = *pp;
+	    
+	    while(pliste->next != NULL) {
+	      pliste = pliste->next;
+	    }
+	    
+	    pliste->next = liste;
+	  }
+  }	  
 }
 
 void generer_pseudo_code_inst(instvalueType p, FILE* file){
@@ -173,6 +210,7 @@ void generer_pseudo_code_inst(instvalueType p, FILE* file){
   static int looplabel_index = 0;
   static int iflabel_index=0;
   static int exitlabel_index=0;
+  static int caselabel_index=0;
   int i;
 
   switch(p.typeinst){
@@ -181,8 +219,11 @@ void generer_pseudo_code_inst(instvalueType p, FILE* file){
 	    fprintf(file,"PRNT ");
 	    fprintf(file,"\n----------------------\n\n");
 	    break;
+	case PrintArray :
+		fprintf(file,"PRINTARRAY %s\n",p.node.printArraynode.name);
+		break;    
 	case Message :
-		fprintf(file,"MESSAGE %s\n\n",p.node.messagenode.message);
+		fprintf(file,"MESSAGE %s\n",p.node.messagenode.message);
 		break; 
 	case Exit : 
 		generer_pseudo_code_ast(p.node.exitnode.cond,file);	 
@@ -204,7 +245,12 @@ void generer_pseudo_code_inst(instvalueType p, FILE* file){
 	    fprintf(file,"STORE ");
 	    fprintf(file,"%s ", name(p.node.assignnode.rangvar,TS));
 	    fprintf(file,"\n----------------------\n\n");
-	    break;    
+	    break; 
+	case AffArray:
+		generer_pseudo_code_ast(p.node.affArraynode.right,file);
+		generer_pseudo_code_ast(p.node.affArraynode.left,file);
+		fprintf(file,"AFFARRAY %s\n",p.node.affArraynode.name);
+		break;       
 	case IfThenArith :
 	    iflabel_index++;
 	    fprintf(file,"----------------------\n Cond %d : if \n----------------------\n",iflabel_index);
@@ -255,13 +301,6 @@ void generer_pseudo_code_inst(instvalueType p, FILE* file){
 	   
 	   fprintf(file,"JG endfor%d\n",forlabel_index);
 
-	   fprintf(file,"PUSH ");
-	   fprintf(file,"\n");
-	   fprintf(file,"LOAD ");
-	   fprintf(file,"%s ",name(p.node.fornode.rangvar,TS));
-	   fprintf(file,"\n");
-	   
-
 	   generer_pseudo_code_list_inst(p.node.fornode.forbodylinst, file);
 
 	   fprintf(file,"PUSH 1\n");
@@ -299,14 +338,14 @@ void generer_pseudo_code_inst(instvalueType p, FILE* file){
 	    fprintf(file,"LABEL endwhile%d\n----------------------\n\n",whilelabel_index);
 		break;
 	case Case:	
-		/*caselabel_index++;
-		for(i=0;i<p.node.casenode.nbCases;i++){
-			fprintf(file,"LOAD %s ",name(p.node.casenode.rangvar,TS));
-			fprintf(file,"PUSH %lf\n",p.node.casenode.c[i].val);
-			fprintf(file,"JNE caselabel%d.%lf\n",caselabel_index,p.node.casenode.c[i].val);
-			generer_pseudo_code_list_inst(p.node.casenode.c[i].caselinst, file);
-			fprintf(file,"LABEL caselabel%d.%lf\n",caselabel_index,p.node.casenode.c[i].val);
-		}*/
+		caselabel_index++;
+		for(i=0;i<p.node.switchnode.nbCases;i++){
+			fprintf(file,"LOAD %s ",name(p.node.switchnode.rangvar,TS));
+			fprintf(file,"PUSH %lf\n",p.node.switchnode.c[i].val);
+			fprintf(file,"JNE caselabel%d.%lf\n",caselabel_index,p.node.switchnode.c[i].val);
+			generer_pseudo_code_list_inst(p.node.switchnode.c[i].caselinst, file);
+			fprintf(file,"LABEL caselabel%d.%lf\n",caselabel_index,p.node.switchnode.c[i].val);
+		}
 		break;     
 	case Goto:
 		fprintf(file,"----------------------\nGoto\n----------------------\nJMP %s\n----------------------\n\n",p.node.gotonode.label);
@@ -315,8 +354,11 @@ void generer_pseudo_code_inst(instvalueType p, FILE* file){
 		fprintf(file,"LABEL %s\n",p.node.labelnode.label);
 		break;	
 	case DECL:	
-		fprintf(file,"----------------------\nDeclaration de %s\n----------------------\nDATA %s %lf\n----------------------\n\n",p.node.declnode.name,p.node.declnode.name,p.node.declnode.value);
-		break;    
+		fprintf(file,"----------------------\nDeclaration de %s\n----------------------\nDATA %s %lf %d\n----------------------\n\n",p.node.declnode.name,p.node.declnode.name,p.node.declnode.value,p.node.declnode.type);                                     
+		break;
+	case DECLArray:
+		fprintf(file,"ARRAY %s %d %d %d\n",p.node.declArraynode.nameVar,p.node.declArraynode.type,p.node.declArraynode.bInf,p.node.declArraynode.bSup);
+		break;	    
   }
   
 }

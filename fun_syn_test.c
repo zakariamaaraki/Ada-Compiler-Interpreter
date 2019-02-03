@@ -6,6 +6,18 @@
 #include "types.h"
 #include "pseudoCode.h"
 
+
+typedef struct{
+	char name[30];
+	char type; //0 : Integer, 1 : Float, 2 : Double, 3 : Boolean 
+	int array; //0 or 1
+	int bInf;
+	int bSup;
+}TypeDecl;
+
+TypeDecl Decl[100];
+int nbDecl=0;
+
 FILE* file;
 listinstvalueType* list_inst;
 listinstvalueType* list_inst_if;
@@ -273,25 +285,16 @@ void if_statement() {
 	  instvalueType* p=creer_instruction_if(ast1, list_inst_if, NULL);
 	  list_inst_if=NULL;
 
-	  if(list_inst==NULL){
-	  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
-	  		list_inst->first=*p;
-	  }
-	  else{
-	  	inserer_inst_en_queue(list_inst,*p);
-	  }
+	  	inserer_inst_en_queue(&list_inst,*p);
+	  
   }
   else{
   	  instvalueType* p=creer_instruction_if(ast1, list_inst_if, list_inst_else);
 	  list_inst_if=NULL;
 	  list_inst_else=NULL;
-	  if(list_inst==NULL){
-	  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
-	  		list_inst->first=*p;
-	  }
-	  else{
-	  	inserer_inst_en_queue(list_inst,*p);
-	  }
+
+	  	inserer_inst_en_queue(&list_inst,*p);
+	  
   }
   
   
@@ -370,23 +373,19 @@ void loop_statement() {
 			if(i>=n){
 				fprintf(stderr, "the variable %s is not declared \n",token.val.stringValue);exit(-1);
 			}
+			else if(TS[i].type==1){
+				fprintf(stderr, "the variable %s is Float, variable in for loop must be Integer \n",token.val.stringValue);exit(-1);
+			}
+			else if(TS[i].type==2){
+				fprintf(stderr, "the variable %s is Double, variable in for loop must be Integer \n",token.val.stringValue);exit(-1);
+			}
+			else if(TS[i].type==3){
+				fprintf(stderr, "the variable %s is Boolean, variable in for loop must be Integer \n",token.val.stringValue);exit(-1);
+			}
 	//------------------------------------
 
     
     matchToken(T_IDENTIFIER);
-    strcpy(TS[n].name,nomToken);TS[n].value=0;
-    TS[n].type=0;
-    // for ==> Integer
-    strcpy(nomVariable,nomToken);
-    n++;
-	  p=creer_instruction_decl(0,nomVariable);
-	  if(list_inst==NULL){
-	  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
-	  		list_inst->first=*p;
-	  }
-	  else{
-	  	inserer_inst_en_queue(list_inst,*p);
-	  }
     matchToken(T_in);
 
     if(token.type == T_reverse){ reverse=1; scanToken();}
@@ -408,35 +407,24 @@ void loop_statement() {
   list_inst_for=tmp;
       if(type_instr==1){
 	       p=creer_instruction_for(indexVar(nomVariable,TS,n), ast1, ast2, reverse ,tmp);
-		  if(list_inst==NULL){
-		  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
-		  		list_inst->first=*p;
-		  }
-		  else{
-		  	inserer_inst_en_queue(list_inst,*p);
-		  }
+
+
+		  	inserer_inst_en_queue(&list_inst,*p);
+		  
       }
       else if(type_instr==0){
       		//T_Loop
       	  p=creer_instruction_loop(tmp);
-		  if(list_inst==NULL){
-		  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
-		  		list_inst->first=*p;
-		  }
-		  else{
-		  	inserer_inst_en_queue(list_inst,*p);
-		  }
+
+		  	inserer_inst_en_queue(&list_inst,*p);
+		  
       }
       else if(type_instr==2){
       		//T_While
       	  p=creer_instruction_while(ast1,tmp);
-		  if(list_inst==NULL){
-		  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
-		  		list_inst->first=*p;
-		  }
-		  else{
-		  	inserer_inst_en_queue(list_inst,*p);
-		  }
+
+		  	inserer_inst_en_queue(&list_inst,*p);
+		  
       }
   	  
 	  
@@ -489,6 +477,9 @@ void type_declaration() {
 
 
   matchToken(T_type);
+
+  strcpy(Decl[nbDecl].name,token.val.stringValue);
+
   matchToken(T_IDENTIFIER);
   matchToken(T_is);
   switch (token.type) {
@@ -600,10 +591,12 @@ void real_type_definition() {
 
 // only 1-D array
 void array_type_definition() {
+  int bInf,bSup;
+  int numeric=0;	
   matchToken(T_array);
   matchToken(T_PO);
 
-  matchToken(T_IDENTIFIER);
+  //matchToken(T_IDENTIFIER);
   if(token.type == T_range) {
     matchToken(T_range);
     if(token.type == T_INF) {
@@ -611,14 +604,40 @@ void array_type_definition() {
       matchToken(T_SUP);
     }
     else if(token.type == T_NUMERIC) {
+
+      //Semantique------------------------------------------------------
+      		bInf=atoi(token.val.stringValue);
+      //----------------------------------------------------------------
+
       matchToken(T_NUMERIC);
       matchToken(T_PT);
       matchToken(T_PT);
+
+      //Semantique------------------------------------------------------
+      		bSup=atoi(token.val.stringValue);
+      		if(bSup<bInf){fprintf(stderr,"%d is lower than %d in the array type definition\n",bSup,bInf);exit(-1);}
+      //----------------------------------------------------------------
+
+      		Decl[nbDecl].array=1;
+      		Decl[nbDecl].bSup=bSup;
+
+      numeric=1;
       matchToken(T_NUMERIC);
     }
   }
   matchToken(T_PF);
   matchToken(T_of);
+
+  if(numeric==1){
+  	if(strcmp(token.val.stringValue,"Integer")==0)Decl[nbDecl].type=0;
+	else if(strcmp(token.val.stringValue,"Float")==0)Decl[nbDecl].type=1;
+	else if(strcmp(token.val.stringValue,"Double")==0)Decl[nbDecl].type=2;
+    else if(strcmp(token.val.stringValue,"Boolean")==0)Decl[nbDecl].type=3;
+    Decl[nbDecl++].bInf=bInf;
+    numeric=0;
+  }
+  
+
   matchToken(T_IDENTIFIER);
 
 
@@ -679,35 +698,51 @@ void component_item() {
 
 void object_number_declaration() {
   
-
   matchToken(T_IDENTIFIER);
-
+  
   //semantique----------------------------
   int i;
   for(i=0;i<n;i++){
-  	if(strcmp(TS[i].name,nomToken)==0){fprintf(stderr, "the variable %s is declared twice \n",nomToken);exit(-1);}
+  	if(strcmp(TS[i].name,nomToken)==0){fprintf(stderr, "\033[0;31mthe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis declared twice\033[0m \n",nomToken);exit(-1);;exit(-1);}
   }
   //------------------------------------
-  strcpy(TS[n].name,nomToken);TS[n].value=0;
-  instvalueType* p=creer_instruction_decl(TS[n].value,TS[n].name);
-  if(list_inst==NULL){
-  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
-  		list_inst->first=*p;
-  }
-  else{
-  	inserer_inst_en_queue(list_inst,*p);
-  }
+  
+   strcpy(TS[n].name,nomToken);TS[n].value=0;
+
   printf("DEEEEEECLLLLLL %d\n",n);
   matchToken(T_2PT);
 
-    	
   //Semantique
 	if(strcmp(token.val.stringValue,"Integer")==0)TS[n].type=0;
 	else if(strcmp(token.val.stringValue,"Float")==0)TS[n].type=1;
 	else if(strcmp(token.val.stringValue,"Double")==0)TS[n].type=2;
 	else if(strcmp(token.val.stringValue,"Boolean")==0)TS[n].type=3;
-	else TS[n].type=4;
+	else {
+		
+		for(i=0;i<nbDecl;i++){
+			if(strcmp(token.val.stringValue,Decl[i].name)==0){
+				if(Decl[i].array==1){
+					TS[n].type=4;
+					break;
+				}
+			}
+		}
+		if(i>=nbDecl){fprintf(stderr,"%s is not a type !! \n",token.val.stringValue);exit(-1);}
+	} 
   //----------------------------------------------------------
+
+  instvalueType* p=NULL;
+  if(TS[n].type==4){
+  		p=creer_instruction_declArray(Decl[i].bInf,Decl[i].bSup,Decl[i].type,TS[n].name);
+  		TS[n].value=Decl[i].type;
+  }
+  else{
+  	p=creer_instruction_decl(TS[n].value,TS[n].name,TS[n].type);
+  }
+   
+
+  	inserer_inst_en_queue(&list_inst,*p);
+  
 
   n++;
 
@@ -718,17 +753,34 @@ void object_number_declaration() {
     default: printf("Expecting one of the following: T_constant T_IDENTIFIER instead of");
              getMacro(token.type); exit(-1);
   }
-  matchToken(T_ASSIGN);
-  expression();
-  instvalueType* affectation=creer_instruction_affectation(n-1, ast); 
-  if(list_inst==NULL){
-  		list_inst=(listinstvalueType*)malloc(sizeof(instvalueType));
-  		list_inst->first=*affectation;
-  }
-  else{
-  	inserer_inst_en_queue(list_inst,*affectation);
-  }
-  ast=NULL;
+  if(TS[n-1].type!=4){
+	  matchToken(T_ASSIGN);
+	  if(strcmp(token.val.stringValue,"false")==0){
+	  		ast=creer_feuille_nombre(0.000000, Int);
+
+	  		//Semantique------------------------------------------------------
+	  			if(TS[n-1].type!=3){
+	  				fprintf(file,"the variable %s is not a Boolean!\n",TS[n-1].name);exit(-1);
+	  			}
+	  		//-----------------------------------------------------------------
+	  }
+	  else if(strcmp(token.val.stringValue,"true")==0){
+	  		ast=creer_feuille_nombre(1.000000, Int);
+
+	  		//Semantique------------------------------------------------------
+	  			if(TS[n-1].type!=3){
+	  				fprintf(file,"the variable %s is not a Boolean!\n",TS[n-1].name);exit(-1);
+	  			}
+	  		//-----------------------------------------------------------------
+	  }
+
+	  ast=NULL;
+	  expression();
+	  instvalueType* affectation=creer_instruction_affectation(n-1, ast); 
+	  	inserer_inst_en_queue(&list_inst,*affectation);
+	  
+	  ast=NULL;
+  }	  
   matchToken(T_PV);
 }
 
@@ -755,14 +807,7 @@ void exit_statement() {
   		matchToken(T_when); 
   		expression(); 
   		instvalueType* inst=creer_instruction_exit(ast);
-		  if(list_inst==NULL){
-				    list_inst=(listinstvalueType*)malloc(sizeof(listinstvalueType));
-				    list_inst->first=*inst;
-				    list_inst->next=NULL;
-		  }	
-		  else {
-				    inserer_inst_en_queue(list_inst, *inst);
-		  }
+				    inserer_inst_en_queue(&list_inst, *inst);
 		  ast=NULL;
   }
   matchToken(T_PV);
@@ -774,14 +819,8 @@ void goto_statement() {
   matchToken(T_IDENTIFIER);
   creer_instruction_goto(nomToken);
   instvalueType* inst=creer_instruction_goto(nomToken);
-  if(list_inst==NULL){
-		    list_inst=(listinstvalueType*)malloc(sizeof(listinstvalueType));
-		    list_inst->first=*inst;
-		    list_inst->next=NULL;
-  }	
-  else {
-		    inserer_inst_en_queue(list_inst, *inst);
-  }
+
+		    inserer_inst_en_queue(&list_inst, *inst);
   matchToken(T_PV);
 
 }
@@ -802,7 +841,7 @@ void param() {
 	  int i=0;
 	  while(strcmp(TS[i].name,nomToken)!=0 && i<n)i++;
 	  if(i>=n){
-	  		fprintf(stderr, "the variable %s is not declared \n",nomToken);exit(-1);
+				fprintf(stderr, "\033[0;31mthe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis not declared \033[0m \n",nomToken);exit(-1);
 	  }
   //------------------------------------
 
@@ -829,6 +868,12 @@ void nextParam() {
 }
 
 void procedure_call_or_assign_statement() {
+  int i,value;
+  int id=0;
+  int par;
+  char nameVar[30];
+  char nameArray[30];
+  int isArray=0;
   instvalueType* inst;
   char nomVariable[30];
   matchToken(T_IDENTIFIER);
@@ -840,29 +885,22 @@ void procedure_call_or_assign_statement() {
 		    if(token.type == T_IDENTIFIER){
 		    	params();
 
-		    	inst=creer_instruction_print(indexVar(nomToken,TS,n));
-		    	if(list_inst==NULL){
-			    	list_inst=(listinstvalueType*)malloc(sizeof(listinstvalueType));
-			    	list_inst->first=*inst;
-			    	list_inst->next=NULL;
-		   		 }	
-		    	else {
-		    		inserer_inst_en_queue(list_inst, *inst);
-		   		 }
+		    	if(TS[indexVar(nomToken,TS,n)].type!=4)inst=creer_instruction_print(indexVar(nomToken,TS,n));
+
+		    	else inst=creer_instruction_printArray(nomToken);
+
+
+		    		inserer_inst_en_queue(&list_inst, *inst);
+		   		 
 		    }
 		    else{
 		    	message=1;
 		    	params();
 		    	if(ast!=NULL){
 		    		inst=creer_instruction_print_exp(ast);
-		    		if(list_inst==NULL){
-				    	list_inst=(listinstvalueType*)malloc(sizeof(listinstvalueType));
-				    	list_inst->first=*inst;
-				    	list_inst->next=NULL;
-			   		}	
-			    	else {
-			    		inserer_inst_en_queue(list_inst, *inst);
-			   		}
+
+			    		inserer_inst_en_queue(&list_inst, *inst);
+			   		
 		    		ast=NULL;
 		    	}
 		    	message=0;	
@@ -880,39 +918,148 @@ void procedure_call_or_assign_statement() {
 
 	    }
   }
-  else{
-  	   if(token.type == T_PO) { 	
-	    matchToken(T_PO);
-	    params();
-	    matchToken(T_PF);
 
-	    }
-	    else if(token.type == T_ASSIGN) {
-
+  else if(token.type == T_ASSIGN) {
+           scanToken();
  		  //semantique----------------------------
 	    	int i=0; 
 			while(strcmp(TS[i].name,nomVariable)!=0 && i<n)i++;
 			if(i>=n){
-				fprintf(stderr, "the variable %s is not declared \n",nomVariable);exit(-1);
+				fprintf(stderr, "\033[0;31mthe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis not declared \033[0m \n",nomVariable);exit(-1);
+			}
+			else if(strcmp(token.val.stringValue,"false")==0){
+				ast=creer_feuille_nombre(0,3);
+
+				//Semantique------------------------------------------------------
+		  			if(TS[indexVar(nomVariable,TS,n)].type!=3){
+		  				printf("the variable %s is not a Boolean!\n",TS[indexVar(nomVariable,TS,n)].name);exit(-1);
+		  			}
+	  			//-----------------------------------------------------------------
+		  			scanToken();
+			}
+			else if(strcmp(token.val.stringValue,"true")==0) {
+				ast=creer_feuille_nombre(1,3);
+
+				//Semantique------------------------------------------------------
+		  			if(TS[indexVar(nomVariable,TS,n)].type!=3){
+		  				printf("the variable %s is not a Boolean!\n",TS[indexVar(nomVariable,TS,n)].name);exit(-1);
+		  			}
+		  		//-----------------------------------------------------------------
+		  			scanToken();
 			}
 		  //------------------------------------
 
-	      scanToken();
+	    else{  
 	      expression();
+	  }
+
 	      inst=creer_instruction_affectation(indexVar(nomVariable,TS,n), ast);
-		    if(list_inst==NULL){
-		    	list_inst=(listinstvalueType*)malloc(sizeof(listinstvalueType));
-		    	list_inst->first=*inst;
-		    	list_inst->next=NULL;
-		    }	
-		    else {
-		    	inserer_inst_en_queue(list_inst, *inst);
-		    }	
+
+		    	inserer_inst_en_queue(&list_inst, *inst);
+		    	
 
 	      ast=NULL;
 
 
 	    }
+
+
+  else{
+  	    AST astTmp;
+  		for(i=0;i<n;i++){
+  			if(strcmp(TS[i].name,nomToken)==0 && TS[i].type==4){
+  				isArray=1;
+  			}
+  		}
+  		 strcpy(nameArray,nomToken);
+  	   if(token.type == T_PO) { 	
+	    matchToken(T_PO);
+	    
+	       if(token.type == T_IDENTIFIER){
+                
+               
+	       		//Semantique---------------------------------------------------------------
+		    		if(TS[indexVar(token.val.stringValue,TS,n)].type!=0 && isArray==1){
+		    			fprintf(stderr,"The index of an array must be Integer\n");exit(-1);
+		    		}
+		    	//-------------------------------------------------------------------------
+
+		    	strcpy(nameVar,token.val.stringValue);
+			   		astTmp=creer_feuille_idf(nameVar,TS[indexVar(nameVar,TS,n)].type);
+		    	}
+
+		    	params();
+		    	astTmp=ast;
+                ast=NULL;
+		    		//inserer_inst_en_queue(&list_inst, *inst);
+		   		 
+		    }
+		    else{
+		    	
+		    	params();
+		    	if(ast!=NULL){
+			   		astTmp=ast;
+		    		ast=NULL;
+		    	}
+		    		
+		    }
+
+
+	    matchToken(T_PF);
+
+		     if(token.type == T_ASSIGN) {
+
+		       //Semantique--------------------------------------------------------		       
+			     	if(isArray==0){
+			     		fprintf(stderr,"%s is not an array !!\n",nameArray);exit(-1);
+			     	}
+		       //------------------------------------------------------------------		
+
+
+	           scanToken();
+	 		  //semantique----------------------------
+		    	int i=0; 
+		    	if(token.type == T_IDENTIFIER){
+					while(strcmp(TS[i].name,token.val.stringValue)!=0 && i<n)i++;
+					if(i>=n){
+						fprintf(stderr, "\033[0;31mthe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis not declared \033[0m \n",nomVariable);exit(-1);
+					}
+				}	
+				else if(strcmp(token.val.stringValue,"false")==0){
+					ast=creer_feuille_nombre(0,3);
+
+					//Semantique------------------------------------------------------
+			  			if(TS[indexVar(nomVariable,TS,n)].value!=3){ //for arrays value is a type !!
+			  				printf("the variable %s is not a Boolean!\n",TS[indexVar(nomVariable,TS,n)].name);exit(-1);
+			  			}
+		  			//-----------------------------------------------------------------
+			  			scanToken();
+				}
+				else if(strcmp(token.val.stringValue,"true")==0) {
+					ast=creer_feuille_nombre(1,3);
+
+					//Semantique------------------------------------------------------
+			  			if(TS[indexVar(nomVariable,TS,n)].value!=3){ //for arrays value is a type !!
+			  				printf("the variable %s is not a Boolean!\n",TS[indexVar(nomVariable,TS,n)].name);exit(-1);
+			  			}
+			  		//-----------------------------------------------------------------
+			  			scanToken();
+				}
+			  //------------------------------------
+
+		    else{  
+		      expression();
+		 	 }
+
+		      inst=creer_instruction_affectationArray(nameArray, astTmp, ast);
+
+			    	inserer_inst_en_queue(&list_inst, *inst);
+			    	
+
+		      ast=NULL;
+
+	    }
+	    
   }
   
   matchToken(T_PV);
@@ -955,6 +1102,8 @@ void relation() {
 
 void simple_expression() {
   int i=0;
+  AST astTmp, astEchange;
+  char nomVariable[30];
   instvalueType* inst;
   switch (token.type) {
     case T_PLUS:  case T_MOINS: scanToken();
@@ -963,25 +1112,39 @@ void simple_expression() {
                      printf("========>%s\n",token.val.stringValue);message=2; term(); term_cat(); break;
     case T_null: 
     case T_STRING: if(message==1){inst=creer_instruction_message(token.val.stringValue);
-				    if(list_inst==NULL){
-						    	list_inst=(listinstvalueType*)malloc(sizeof(listinstvalueType));
-						    	list_inst->first=*inst;
-						    	list_inst->next=NULL;
+
+						    	inserer_inst_en_queue(&list_inst, *inst);
 						    }	
-						    else {
-						    	inserer_inst_en_queue(list_inst, *inst);
-						    }	}
 						    term(); term_cat(); break;
     case T_PO:
     case T_IDENTIFIER: //semantique----------------------------
 						  while(strcmp(TS[i].name,token.val.stringValue)!=0 && i<n)i++;
-						  if(i>=n){
-						  		fprintf(stderr, "the variable %s is not declared \n",token.val.stringValue);exit(-1);
-						  }
+						  if(i>=n && strcmp(token.val.stringValue,"false")!=0 && strcmp(token.val.stringValue,"true")!=0){
+								fprintf(stderr, "\033[0;31mthe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis not declared \033[0m \n",token.val.stringValue);exit(-1);
+							}
+							else if(strcmp(token.val.stringValue,"false")==0){ast=creer_feuille_nombre(0,3);}
+							else if(strcmp(token.val.stringValue,"true")==0){ast=creer_feuille_nombre(1,3);}
 					  //------------------------------------
 
-    				 if(ast==NULL)ast=creer_feuille_idf(token.val.stringValue, TS[i].type);
-                     else ast->noeud.op.expression_droite=creer_feuille_idf(token.val.stringValue, TS[i].type); 
+					 if(TS[i].type==4){
+					 	    strcpy(nomVariable,token.val.stringValue);
+					 	    matchToken(T_IDENTIFIER);
+					 	    matchToken(T_PO);
+					 	    astTmp=ast;
+					 	    expression();
+                            astEchange=ast;
+                            ast=astTmp;
+                            astTmp=astEchange;
+
+					 		if(ast==NULL)ast=creer_feuille_idfArray(nomVariable, astTmp);
+                        	else ast->noeud.op.expression_droite=creer_feuille_idfArray(nomVariable, astTmp);
+
+                        	matchToken(T_PF);break;
+					 }
+    				 else{
+    				 	if(ast==NULL)ast=creer_feuille_idf(token.val.stringValue, TS[i].type);
+                        else ast->noeud.op.expression_droite=creer_feuille_idf(token.val.stringValue, TS[i].type); 
+                     }   
                      term(); term_cat(); break;
     default: printf("Expecting : T_NULL, T_NUMERIC, T_STRING, T_PO, T_IDENTIFIER instead of ");getMacro(token.type); exit(-1);
   }
@@ -1050,14 +1213,9 @@ void factor() {
 void label(){
 	instvalueType* inst;
 	inst=creer_instruction_label(token.val.stringValue);
-		    if(list_inst==NULL){
-		    	list_inst=(listinstvalueType*)malloc(sizeof(listinstvalueType));
-		    	list_inst->first=*inst;
-		    	list_inst->next=NULL;
-		    }	
-		    else {
-		    	inserer_inst_en_queue(list_inst, *inst);
-		    }
+
+		    	inserer_inst_en_queue(&list_inst, *inst);
+		    
 	
 }
 
@@ -1071,9 +1229,14 @@ int main(int argc, char const *argv[]) {
   file = fopen("generer.txt" , "w+");
   str = calloc(1024 , sizeof(char));
   list_inst=NULL;
+
   scanToken();
   program();
   generer_pseudo_code_list_inst(list_inst, file);
+  int i=0;
+  for(i=0;i<n;i++){
+  	printf("** variables : %s\n",TS[i].name);
+  }
   fclose(file);
 
 

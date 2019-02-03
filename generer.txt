@@ -1,0 +1,238 @@
+----------------------
+Declaration de X
+----------------------
+DATA X 0.000000 0
+----------------------
+
+----------------------
+ Affectation 
+----------------------
+PUSH 100.000000
+PUSH 5.000000
+MULT 
+PUSH 10.000000
+SWAP 
+SUB 
+PUSH 60.000000
+SWAP 
+DIV 
+STORE X 
+----------------------
+
+----------------------
+Declaration de Y
+----------------------
+DATA Y 0.000000 1
+----------------------
+
+----------------------
+ Affectation 
+----------------------
+PUSH 3000.000000
+STORE Y 
+----------------------
+
+----------------------
+Declaration de Z
+----------------------
+DATA Z 0.000000 0
+----------------------
+
+----------------------
+ Affectation 
+----------------------
+PUSH 20.000000
+STORE Z 
+----------------------
+
+----------------------
+Declaration de J
+----------------------
+DATA J 0.000000 3
+----------------------
+
+----------------------
+ Affectation 
+----------------------
+PUSH 1.000000
+STORE J 
+----------------------
+
+ARRAY A 2 1 10
+----------------------
+ Affectation 
+----------------------
+PUSH 8.000000
+STORE X 
+----------------------
+
+----------------------
+ Affectation 
+----------------------
+PUSH 12.000000
+STORE Y 
+----------------------
+
+----------------------
+ Cond 1 : if 
+----------------------
+PUSH 1.000000
+PUSH 2.000000
+SWAP 
+SUB 
+PUSH 0.000000
+SWAP
+JG infLabelTrue1
+PUSH 1.000000
+JMP infLabelFalse1
+LABEL infLabelTrue1
+PUSH 0.000000
+LABEL infLabelFalse1
+PUSH 0
+JNE if1
+JMP ifFalse1
+LABEL if1
+----------------------
+ Affectation 
+----------------------
+LOAD Y
+PUSH 0.000000
+SWAP 
+DIV 
+STORE Y 
+----------------------
+
+----------------------
+Affichage de Y
+----------------------
+LOAD Y
+PRNT 
+----------------------
+
+PRINTARRAY A
+PUSH 6.000000
+PUSH 2.000000
+PUSH 4.000000
+MULT 
+AFFARRAY A
+PRINTARRAY A
+JMP ifTrue1
+LABEL ifFalse1
+----------------------
+ Cond 1 : else 
+----------------------
+
+----------------------
+Affichage d'expression
+----------------------
+PUSH 11.000000
+PRNT
+----------------------
+
+LABEL ifTrue1
+----------------------
+
+----------------------
+ Boucle While 1 
+----------------------
+LABEL Debutwhile1
+PUSH 0.000000
+PUSH 0.000000
+JNE whileTrue1
+JMP endwhile1
+LABEL whileTrue1
+----------------------
+Affichage de X
+----------------------
+LOAD X
+PRNT 
+----------------------
+
+----------------------
+ Affectation 
+----------------------
+LOAD X
+PUSH 1.000000
+SWAP 
+SUB 
+STORE X 
+----------------------
+
+----------------------
+ Affectation 
+----------------------
+PUSH 0.000000
+STORE J 
+----------------------
+
+JMP Debutwhile1
+LABEL endwhile1
+----------------------
+
+----------------------
+ Affectation 
+----------------------
+PUSH 10.000000
+STORE X 
+----------------------
+
+LABEL loop1 
+----------------------
+Affichage de J
+----------------------
+LOAD J
+PRNT 
+----------------------
+
+----------------------
+ Affectation 
+----------------------
+LOAD X
+PUSH 1.000000
+SWAP 
+SUB 
+STORE X 
+----------------------
+
+PUSH 1.000000
+PUSH 0
+JNE exit0
+JMP endexit0
+LABEL exit0
+JMP endloop1
+LABEL endexit0
+
+JMP loop1 
+LABEL endloop1 
+----------------------
+ Affectation 
+----------------------
+PUSH 100.000000
+STORE X 
+----------------------
+
+----------------------
+ Boucle for 1 
+----------------------
+PUSH 1.000000
+STORE X 
+LABEL for1
+PUSH 10.000000
+LOAD X 
+JG endfor1
+
+----------------------
+Affichage d'expression
+----------------------
+PUSH 2.000000
+PRNT
+----------------------
+
+PUSH 1
+LOAD X 
+ADD 
+STORE X 
+JMP for1
+LABEL endfor1
+----------------------
+

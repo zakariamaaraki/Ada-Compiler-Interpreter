@@ -2,13 +2,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef enum {ADD, SUB, DIV, DUPL, JMP, JNE, JGE, JG, LABEL, LOAD, MULT, POP, PRNT, PUSH, STORE, SWAP, DATA, SCAN, MESSAGE} CODOP;
+typedef enum {ADD, SUB, DIV, DUPL, JMP, JNE, JGE, JG, LABEL, LOAD, LOADARRAY, MULT, POP, PRNT, PUSH, STORE, SWAP, DATA, SCAN, MESSAGE, ARRAY, PRINTARRAY, AFFARRAY} CODOP;
 
 typedef struct {
 	char name[30];
 	double value;
 	int type; // 0 int, 1 double, 3 float
 }namevalue;
+
+typedef struct{
+	double* T;
+	char name[30];
+	int type;
+	int length;
+}array;
+
+typedef struct{
+	int bInf;
+	int bSup;
+	char name[30];
+	int type;
+}arrayType;
+
 
 typedef union {
 	char var[30];
@@ -18,6 +33,8 @@ typedef union {
 	char label_name[30]; // pour JMP/JNE/JG/LABEL
 
 	namevalue nv;
+
+	arrayType Array;
 } Param;
 
 typedef struct {
@@ -48,4 +65,4 @@ pseudoinstruction rechercher_instruction_au_label(char* label);
 
 void loadPseudoCode(char* nameFile);
 void store(char* name, double value);
-void data(char* name, double value);
+void data(char* name, double value, int type);

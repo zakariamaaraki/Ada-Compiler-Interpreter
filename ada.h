@@ -3,6 +3,7 @@
 #define T_integer 253
 #define T_float 254
 #define T_boolean 255
+
 //...
 
 

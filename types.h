@@ -1,7 +1,12 @@
 #include "ast.h"
 
 
-typedef enum {Exit, PrintExp, Message, DECL, PrintIdf, PrintString, AssignArith, IfThenArith, IfThenElseArith, Case, For, Loop, While, Goto, Label} Type_INST ;
+typedef enum {Exit, PrintExp, Message, DECL, AffArray, DECLArray, PrintArray, PrintIdf, PrintString, AssignArith, IfThenArith, IfThenElseArith, Case, For, Loop, While, Goto, Label} Type_INST ;
+
+typedef struct{
+	double val;
+	struct LIST_INST* caselinst;
+}cases;
 
 typedef struct INST {
   Type_INST typeinst;
@@ -10,6 +15,10 @@ typedef struct INST {
     struct  {
       int rangvar; // indice de l'idf, à afficher, dans la table des symboles
     } printnode;
+    // PRINT Array
+    struct  {
+      char name[30]; 
+    } printArraynode;
     // MESSAGE
     struct  {
       char message[30]; 
@@ -58,12 +67,33 @@ typedef struct INST {
     //decl
     struct {
     	char name[30];
+    	char type;
     	double value;
+    	//int type; //0:Integer, 1:Float, 2:Double, 3:Boolean
     }declnode;
+    //declArray
+    struct {
+    	char nameVar[30];
+    	int bInf;
+    	int bSup;
+    	char type; //0:Integer, 1:Float, 2:Double, 3:Boolean
+    }declArraynode;
+    //affArray
+    struct {
+    	char name[30];
+    	AST right;
+    	AST left;
+    }affArraynode;
     //exit
     struct {
     	AST cond;
     }exitnode;
+    //case
+    struct{
+    	int rangvar;
+    	cases c[100];
+    	int nbCases;
+    }switchnode;
 
   } node;
 } instvalueType;
@@ -74,12 +104,17 @@ typedef struct LIST_INST {
   struct LIST_INST * next;
 } listinstvalueType;
 
+
+
 instvalueType* creer_instruction_print(int rangvar);
+instvalueType* creer_instruction_printArray(char* name);
 instvalueType* creer_instruction_message(char* message);
 instvalueType* creer_instruction_print_exp(AST ast);
 instvalueType* creer_instruction_exit(AST cond);
-instvalueType* creer_instruction_decl(double value, char* name);
+instvalueType* creer_instruction_decl(double value, char* name, char type);
+instvalueType* creer_instruction_declArray(int bInf, int bSup, int type, char* nameVar);
 instvalueType* creer_instruction_affectation(int rangvar, AST past);
+instvalueType* creer_instruction_affectationArray(char* nameArray, AST astTmp, AST ast);
 instvalueType* creer_instruction_if( AST past, listinstvalueType* plistthen, listinstvalueType* plistelse);
 instvalueType* creer_instruction_for(int rangvar, AST borneinf, AST bornesup, int reverse, listinstvalueType* pplistfor);
 instvalueType* creer_instruction_while(AST cond, listinstvalueType* pplistwhile);
@@ -87,7 +122,7 @@ instvalueType* creer_instruction_loop(listinstvalueType* pplistloop);
 instvalueType* creer_instruction_goto(char* label);
 instvalueType* creer_instruction_label(char* label);
 
-void inserer_inst_en_queue(listinstvalueType* pp, instvalueType p);
+void inserer_inst_en_queue(listinstvalueType** pp, instvalueType p);
 
 void generer_pseudo_code_inst(instvalueType p,FILE* file);
 void generer_pseudo_code_list_inst(listinstvalueType* p, FILE* file);

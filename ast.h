@@ -2,9 +2,9 @@
 #include <stdio.h>
 
 
-typedef enum {NB=0, _IDF = 1, OP=2} Type_Exp ; // IDF is also a token !!
+typedef enum {NB=0, _IDF = 1, OP=2, Array=3} Type_Exp ; // IDF is also a token !!
 
-typedef enum {Int, Float, Double, _Boolean} Type;
+typedef enum {Int, _Float, _Double, _Boolean} Type;
 
 typedef enum {plus, minus, mult, _div, sup, inf, eg, supEg, infEg} Type_Op; // div est un mot réservé
 
@@ -50,5 +50,7 @@ AST creer_feuille_nombre(double n, Type type);
 AST creer_feuille_idf(char *idf, Type type);
 
 AST creer_noeud_operation(char op, AST arbre_g, AST arbre_d, Type type);
+
+AST creer_feuille_idfArray(char* nameArray, AST exp);
 
 void generer_pseudo_code_ast(AST ast, FILE* file);

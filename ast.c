@@ -30,7 +30,7 @@ int est_feuille(AST a){
 }
 
 AST creer_feuille_nombre(double n, Type type){
-  AST result = (AST) malloc (sizeof(expvalueType));
+  AST result = (AST)malloc(sizeof(expvalueType));
   result->typeexp=NB;
   result->noeud.nombre = n;
   result->typename = type;
@@ -42,6 +42,15 @@ AST creer_feuille_idf(char *idf, Type type){
   result->typeexp=_IDF;
   result->typename = type; // Int ou Float ou Double
   strcpy(result->noeud.idf, idf);
+  return result;
+}
+
+AST creer_feuille_idfArray(char* nameArray, AST exp){
+  AST result = (AST) malloc (sizeof(expvalueType));
+  result->typeexp=Array;
+  result->typename = 0; // Int ou Float ou Double
+  result->noeud.op.expression_droite = exp; 
+  strcpy(result->noeud.idf, nameArray);
   return result;
 }
 
@@ -160,6 +169,12 @@ AST creer_noeud_operation(char op, AST arbre_g, AST arbre_d, Type type){
       fprintf(file,"LABEL egLabelFalse%d\n",egLabel);	
       break;  
     }
+    break;
+
+    case Array :
+      generer_pseudo_code_ast(arbre_droit(ast),file);  
+      fprintf(file,"LOADARRAY %s \n",ast->noeud.idf);
+    break;
 
   }
  
