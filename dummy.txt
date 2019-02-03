@@ -6,7 +6,7 @@ with Ada.Integer_Text_IO;           use Ada.Integer_Text_IO;
 
 
 procedure Greet is
-  type Page_Num is array( range 1..10 ) of Double;
+  type Page_Num is array( range 0..11 ) of Double;
   X : Integer := 100*5-10/60;
   Y : Float := 3000;
   Z : Integer := 20;
@@ -15,7 +15,7 @@ procedure Greet is
 
 
 begin
-  --goto endLayout;
+  goto endLayout;
 
    X:=8;
    Y:=12;
@@ -30,13 +30,13 @@ begin
         Y:=Y/2;
         Put(Y);
         Put(A);
-        A(2*4):=6;
+        A(2*3):=6;
         Put(A);
      else 
 		Put(11);  
      end if;
 
-     while false loop
+     while X loop
      	Put(X);
      	X:=X-1;
      	--X:=false;
@@ -49,14 +49,19 @@ begin
      	Put(J);
      	X:=X-1;
         exit Label when true;
+        --<<endLayout>>
      end loop;  
 
      X:=100; 
 
-     for X in 1..10 loop
-     	Put(2);
-     end loop;		
+     
+     for X in reverse 0..10 loop
+      A(X):=5;
+     	Put(A);
 
+
+     end loop;		
+ 
 
 
 end Greet;

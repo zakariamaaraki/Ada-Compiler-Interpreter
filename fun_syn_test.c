@@ -396,7 +396,7 @@ void loop_statement() {
 			else if(TS[i].type==3){
 				fprintf(stderr, "the variable %s is Boolean, variable in for loop must be Integer \n",token.val.stringValue);exit(-1);
 			}
-			
+
 	//------------------------------------
 
     
@@ -648,7 +648,8 @@ void array_type_definition() {
 	else if(strcmp(token.val.stringValue,"Float")==0)Decl[nbDecl].type=1;
 	else if(strcmp(token.val.stringValue,"Double")==0)Decl[nbDecl].type=2;
     else if(strcmp(token.val.stringValue,"Boolean")==0)Decl[nbDecl].type=3;
-    Decl[nbDecl++].bInf=bInf;
+    Decl[nbDecl].bInf=bInf;
+    nbDecl++;
     numeric=0;
   }
   
@@ -999,14 +1000,22 @@ void procedure_call_or_assign_statement() {
 		    		}
 		    	//-------------------------------------------------------------------------
 
-		    	strcpy(nameVar,token.val.stringValue);
+		    		strcpy(nameVar,token.val.stringValue);
 			   		astTmp=creer_feuille_idf(nameVar,TS[indexVar(nameVar,TS,n)].type);
+			   		params();
+			   		ast=NULL;
+		    	}
+		    	else{
+
+		    		params();
+		    		astTmp=ast;
+               		ast=NULL;
+		    		//inserer_inst_en_queue(&list_inst, *inst);
+
 		    	}
 
-		    	params();
-		    	astTmp=ast;
-                ast=NULL;
-		    		//inserer_inst_en_queue(&list_inst, *inst);
+              
+		    	
 		   		 
 		    }
 		    else{
@@ -1039,6 +1048,7 @@ void procedure_call_or_assign_statement() {
 					if(i>=n){
 						fprintf(stderr, "\033[0;31mthe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis not declared \033[0m \n",nomVariable);exit(-1);
 					}
+					else expression();
 				}	
 				else if(strcmp(token.val.stringValue,"false")==0){
 					ast=creer_feuille_nombre(0,3);
@@ -1064,6 +1074,7 @@ void procedure_call_or_assign_statement() {
 
 		    else{  
 		      expression();
+
 		 	 }
 
 		      inst=creer_instruction_affectationArray(nameArray, astTmp, ast);

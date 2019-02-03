@@ -58,7 +58,13 @@ PUSH 1.000000
 STORE J 
 ----------------------
 
-ARRAY A 2 1 10
+ARRAY A 2 0 11
+----------------------
+Goto
+----------------------
+JMP endLayout
+----------------------
+
 ----------------------
  Affectation 
 ----------------------
@@ -130,7 +136,7 @@ PRNT
 PRINTARRAY A
 PUSH 6.000000
 PUSH 2.000000
-PUSH 4.000000
+PUSH 3.000000
 MULT 
 AFFARRAY A
 PRINTARRAY A
@@ -154,7 +160,7 @@ LABEL ifTrue1
  Boucle While 1 
 ----------------------
 LABEL Debutwhile1
-PUSH 0.000000
+LOAD X
 PUSH 0.000000
 JNE whileTrue1
 JMP endwhile1
@@ -232,23 +238,19 @@ STORE X
 ----------------------
  Boucle for 1 
 ----------------------
-PUSH 1.000000
+PUSH 10.000000
 STORE X 
 LABEL for1
-PUSH 10.000000
 LOAD X 
+PUSH 0.000000
 JG endfor1
-
-----------------------
-Affichage d'expression
-----------------------
-PUSH 2.000000
-PRNT
-----------------------
-
+PUSH 5.000000
+LOAD X
+AFFARRAY A
+PRINTARRAY A
 PUSH 1
 LOAD X 
-ADD 
+SUB 
 STORE X 
 JMP for1
 LABEL endfor1

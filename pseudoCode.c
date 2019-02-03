@@ -310,12 +310,16 @@ void interpreter_pseudo_code_inst(pseudoinstruction pci) {
 		 	printf("%s",pci.param.var);
 		 	break;    
 		case ARRAY :
+		    i=(pci.param.Array.bSup-pci.param.Array.bInf+1);
+		    //printf("%d\n",i);
 			strcpy(Array[nbArray].name,pci.param.Array.name);
 			Array[nbArray].type=pci.param.Array.type;
-			Array[nbArray].T=(double*)malloc(sizeof(double)*(pci.param.Array.bSup-pci.param.Array.bInf+1));
+			Array[nbArray].T=(double*)malloc(sizeof(double)*(i));
 			Array[nbArray].length=(int)(pci.param.Array.bSup-pci.param.Array.bInf)+1;
-			for(i=0;i<Array[nbArray].length;i++){
-				Array[nbArray].T[i]=i;
+			j=0;
+			for(i=pci.param.Array.bInf;i<=pci.param.Array.bSup;i++){
+				Array[nbArray].T[j]=i;
+				j++;
 			}
 		    nbArray++;
 		    break;

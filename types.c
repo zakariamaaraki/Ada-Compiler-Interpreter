@@ -52,7 +52,7 @@ instvalueType* creer_instruction_declArray(int bInf, int bSup, int type, char* n
 
 instvalueType* creer_instruction_affectationArray(char* nameArray, AST astTmp, AST ast){
 	instvalueType* inst = (instvalueType *) malloc (sizeof(instvalueType));
-
+    
     inst->typeinst=AffArray;
 	strcpy(inst->node.affArraynode.name,nameArray);
 	inst->node.affArraynode.left = astTmp;
