@@ -96,7 +96,7 @@ instvalueType* creer_instruction_affectation(int rangvar, AST past){
    //semantique----------------------------
 	   if(past->typeexp==_IDF){
 			if(past->typename!=TS[rangvar].type){				
-						fprintf(stderr, "the variable %s and %s do not have the same type\n",TS[rangvar].name,past->noeud.idf);exit(-1);			  
+						fprintf(stderr, "\033[0;31mthe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31m and \033[1;36m\033[4;36m%s\033[0m\033[0;31m do not have the same type\033[0m\n",TS[rangvar].name,past->noeud.idf);exit(-1);			  
 			}
 	    }	
     //------------------------------------

@@ -10,6 +10,8 @@
 
 
 
+
+
 //Translate macro value to macro name:
 void getMacro(int type) {
 
@@ -393,7 +395,7 @@ int scanToken() {
   if(token.type == T_UNKNOWN) string_literal();
   if(token.type == T_UNKNOWN) operators();
   //printf("-> ->");getMacro(token.type);printf("\n");
-  printf("-> %s \n", token.val.stringValue);
+  //printf("-> %s \n", token.val.stringValue);
 
   //Ignoring comments
   if(token.type == T_COMMENT) scanToken();
