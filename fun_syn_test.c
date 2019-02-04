@@ -433,7 +433,7 @@ void loop_statement() {
   list_inst_for=tmp;
       if(type_instr==1){
 	       p=creer_instruction_for(indexVar(nomVariable,TS,n), ast1, ast2, reverse ,tmp);
-
+	       TS[indexVar(nomVariable,TS,n)].use++;
 
 		  	inserer_inst_en_queue(&list_inst,*p);
 		  
@@ -738,7 +738,7 @@ void object_number_declaration() {
   }
   //------------------------------------
   
-   strcpy(TS[n].name,nomToken);TS[n].value=0;
+   strcpy(TS[n].name,nomToken);TS[n].value=0;TS[n].use=0;
 
   matchToken(T_2PT);
 
@@ -881,6 +881,7 @@ void param() {
 				printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
 				exit(-1);
 	  }
+	  TS[i].use++;
   //------------------------------------
 
     if(token.type != T_EG) {
@@ -923,7 +924,10 @@ void procedure_call_or_assign_statement() {
 		    if(token.type == T_IDENTIFIER){
 		    	params();
 
-		    	if(TS[indexVar(nomToken,TS,n)].type!=4)inst=creer_instruction_print(indexVar(nomToken,TS,n));
+		    	if(TS[indexVar(nomToken,TS,n)].type!=4){
+		    		inst=creer_instruction_print(indexVar(nomToken,TS,n));
+		    		TS[indexVar(nomToken,TS,n)].use++;
+		    	}	
 
 		    	else inst=creer_instruction_printArray(nomToken);
 
@@ -998,6 +1002,7 @@ void procedure_call_or_assign_statement() {
 	  }
 
 	      inst=creer_instruction_affectation(indexVar(nomVariable,TS,n), ast);
+	      TS[indexVar(nomVariable,TS,n)].use++;
 
 		    	inserer_inst_en_queue(&list_inst, *inst);
 		    	
@@ -1208,8 +1213,8 @@ void simple_expression() {
                         	matchToken(T_PF);break;
 					 }
     				 else{
-    				 	if(ast==NULL)ast=creer_feuille_idf(token.val.stringValue, TS[i].type);
-                        else ast->noeud.op.expression_droite=creer_feuille_idf(token.val.stringValue, TS[i].type); 
+    				 	if(ast==NULL){ast=creer_feuille_idf(token.val.stringValue, TS[i].type);TS[i].use++;}
+                        else {ast->noeud.op.expression_droite=creer_feuille_idf(token.val.stringValue, TS[i].type); TS[i].use++;}
                      }   
                      term(); term_cat(); break;
     default: printf("\033[1;35mExpecting : T_NULL, T_NUMERIC, T_STRING, T_PO, T_IDENTIFIER instead of ");getMacro(token.type);printf("\033[1;35min line \033[0m%d \033[1;35mand column \033[0m%d\n",nbl,nbc); exit(-1);
@@ -1302,6 +1307,7 @@ int main(int argc, char const *argv[]) {
   generer_pseudo_code_list_inst(list_inst, file);
   int i=0;
   for(i=0;i<n;i++){
+  	if(TS[i].use==0)fprintf(stderr,"\033[1;36mWarning : variable %s is not used !!\033[0m\n",TS[i].name);
   	printf("** variables : %s\n",TS[i].name);
   }
   fclose(file);

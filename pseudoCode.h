@@ -8,6 +8,7 @@ typedef struct {
 	char name[30];
 	double value;
 	int type; // 0 int, 1 double, 3 float
+	int use;
 }namevalue;
 
 typedef struct{

@@ -50,7 +50,7 @@ begin
      	Put(J);
      	X:=X-1;
         exit Label when true;
-        --<<endLayout>>
+        
      end loop;  
 
      X:=100; 
@@ -62,7 +62,7 @@ begin
 
 
      end loop;		
- 
+ --<<endLayout>>
 
 
 end Main;
