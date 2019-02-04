@@ -6,7 +6,7 @@ typedef enum {NB=0, _IDF = 1, OP=2, Array=3} Type_Exp ; // IDF is also a token !
 
 typedef enum {Int, _Float, _Double, _Boolean} Type;
 
-typedef enum {plus, minus, mult, _div, sup, inf, eg, supEg, infEg} Type_Op; // div est un mot réservé
+typedef enum {plus, minus, mult, _div, sup, inf, eg, supEg, infEg, diff} Type_Op; // div est un mot réservé
 
 struct Exp ; /* pré déclaration de la structure de stockage d'une expression */
 

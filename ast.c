@@ -70,6 +70,7 @@ AST creer_noeud_operation(char op, AST arbre_g, AST arbre_d, Type type){
   static int supLabel=0;
   static int infLabel=0;
   static int egLabel=0;
+  static int diffLabel=0;
 
   switch(ast->typeexp) {
   case NB :
@@ -164,10 +165,21 @@ AST creer_noeud_operation(char op, AST arbre_g, AST arbre_d, Type type){
       fprintf(file,"JNE egLabelTrue%d\n",egLabel); // opération non commutative
       fprintf(file,"PUSH 1.000000\n");
       fprintf(file,"JMP egLabelFalse%d\n",egLabel);
-      fprintf(file,"LABEL LabelTrue%d\n",egLabel);
+      fprintf(file,"LABEL egLabelTrue%d\n",egLabel);
       fprintf(file,"PUSH 0.000000\n");
       fprintf(file,"LABEL egLabelFalse%d\n",egLabel);	
-      break;  
+      break;
+
+      case diff :
+      diffLabel++;
+      fprintf(file,"JNE diffLabelTrue%d\n",diffLabel); // opération non commutative
+      fprintf(file,"PUSH 0.000000\n");
+      fprintf(file,"JMP diffLabelFalse%d\n",diffLabel);
+      fprintf(file,"LABEL diffLabelTrue%d\n",diffLabel);
+      fprintf(file,"PUSH 1.000000\n");
+      fprintf(file,"LABEL diffLabelFalse%d\n",diffLabel);	
+      break;
+
     }
     break;
 

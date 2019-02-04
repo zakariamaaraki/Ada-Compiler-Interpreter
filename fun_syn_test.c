@@ -757,7 +757,7 @@ void object_number_declaration() {
 				}
 			}
 		}
-		if(i>=nbDecl){fprintf(stderr,"\033[1;36m\033[4;36m%s\033[0m\033[0;31 is not a type !!\033[0m\n",token.val.stringValue);
+		if(i>=nbDecl){fprintf(stderr,"\033[1;36m\033[4;36m%s\033[0m\033[0;31m is not a type !!\n",token.val.stringValue);
 		printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
 		exit(-1);}
 	}   
@@ -1229,6 +1229,7 @@ void term_cat() {
       case T_INF:   ast=creer_noeud_operation(atoi(token.val.stringValue), ast, NULL, inf); scanToken(); term(); term_cat(); break; //simple_expression();break;
       case T_INFEG: ast=creer_noeud_operation(atoi(token.val.stringValue), ast, NULL, infEg); scanToken(); term(); term_cat(); break;
       case T_EG:    ast=creer_noeud_operation(atoi(token.val.stringValue), ast, NULL, eg); scanToken(); term(); term_cat(); break;
+      case T_DIFF:    ast=creer_noeud_operation(atoi(token.val.stringValue), ast, NULL, diff); scanToken(); term(); term_cat(); break;
       case T_SUP:   ast=creer_noeud_operation(atoi(token.val.stringValue), ast, NULL, sup); scanToken(); term(); term_cat(); break;
       /*case T_DIV: 
       default: printf("Expecting one of the following: T_PLUS, T_MOINS, T_CONCAT, T_DIV, T_SUP, T_SUPEG, T_INF, T_INFEG instead of: " );

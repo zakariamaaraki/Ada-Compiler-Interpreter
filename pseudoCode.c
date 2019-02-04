@@ -256,7 +256,7 @@ void interpreter_pseudo_code_inst(pseudoinstruction pci) {
 			op1 = depiler(&VM) ;
 			op2 = depiler(&VM) ;
 			if(op2==0){
-				printf("Exception : 'ArithmeticException' \n");exit(-1);
+				printf("\033[1;36m\033[4;36mException : 'ArithmeticException' \n");exit(-1);
 			}
 			empiler(&VM,op1/op2) ;
 			break ;
@@ -358,7 +358,7 @@ void interpreter_pseudo_code_inst(pseudoinstruction pci) {
 				if(strcmp(Array[i].name,pci.param.Array.name)==0){
 					op1=depiler(&VM);
 					if(op1>=Array[i].length || op1<0){
-						printf("Exception : 'ArrayOutOfBoundException' => %s \n",Array[i].name);exit(-1);
+						printf("\033[1;36m\033[4;36mException : 'ArrayOutOfBoundException' => %s \n",Array[i].name);exit(-1);
 					}
 					else {
 						op2=depiler(&VM);
@@ -372,7 +372,7 @@ void interpreter_pseudo_code_inst(pseudoinstruction pci) {
 				if(strcmp(Array[i].name,pci.param.Array.name)==0){
 					op1=depiler(&VM);
 					if(op1<0 || op1>Array[i].length){
-						printf("Exception : 'ArrayOutOfBoundException' => %s \n",Array[i].name);exit(-1);
+						printf("\033[1;36m\033[4;36mException : 'ArrayOutOfBoundException' => %s \n",Array[i].name);exit(-1);
 					}
 					empiler(&VM,Array[i].T[(int)op1]);
 				}

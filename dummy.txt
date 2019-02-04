@@ -1,16 +1,17 @@
 with Ada.Text_IO;
 with Ada.Integer_Text_IO;           use Ada.Integer_Text_IO;
 
--- gcc -c greet.adb
--- gnatmake Greet.adb 
+-- gcc -c main.adb
+-- gnatmake main.adb 
 
 
-procedure Greet is
+procedure Main is
   type Page_Num is array( range 0..11 ) of Double;
   X : Integer := 100*5-10/60;
   Y : Float := 3000;
   Z : Integer := 20;
   J : Boolean := true;  
+  --M : aaa := 0;
   A : Page_Num; 
 
 
@@ -26,14 +27,14 @@ begin
   end case;
 
 -- Comment -> if
-     if  1 <= 2  then     
-        Y:=X;
+     if  X=8  then     
+        --Y:=X;
         Put(Y);
         Put(A);
-        A(2*3):=6;
+        A(2*3):=9;
         Put(A);
      else 
-		Put(11);  
+		  Put(11);  
      end if;
 
      while X loop
@@ -55,7 +56,7 @@ begin
      X:=100; 
 
      
-     for X in reverse 0..10 loop
+     for X in 0..12 loop
       A(X):=5;
      	Put(A);
 
@@ -64,5 +65,5 @@ begin
  
 
 
-end Greet;
+end Main;
 
