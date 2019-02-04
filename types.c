@@ -7,6 +7,9 @@
 extern namevalue TS[100];
 extern int n;
 
+extern int nbl;
+extern int nbc;
+
 instvalueType* creer_instruction_print(int rangvar){
 
 	instvalueType* inst = (instvalueType *) malloc (sizeof(instvalueType));
@@ -96,7 +99,9 @@ instvalueType* creer_instruction_affectation(int rangvar, AST past){
    //semantique----------------------------
 	   if(past->typeexp==_IDF){
 			if(past->typename!=TS[rangvar].type){				
-						fprintf(stderr, "\033[0;31mthe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31m and \033[1;36m\033[4;36m%s\033[0m\033[0;31m do not have the same type\033[0m\n",TS[rangvar].name,past->noeud.idf);exit(-1);			  
+						fprintf(stderr, "\033[0;31mthe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31m and \033[1;36m\033[4;36m%s\033[0m\033[0;31m do not have the same type ",TS[rangvar].name,past->noeud.idf);
+						printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+						exit(-1);			  
 			}
 	    }	
     //------------------------------------

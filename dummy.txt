@@ -27,7 +27,7 @@ begin
 
 -- Comment -> if
      if  1 <= 2  then     
-        Y:= begin;
+        Y:=X;
         Put(Y);
         Put(A);
         A(2*3):=6;

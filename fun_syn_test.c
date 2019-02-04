@@ -44,14 +44,17 @@ double valeur(char* nomToken){
 	return -1;
 }
 
+extern int nbl;
+extern int nbc;
+
 
 int matchToken(int expected) {
   if(token.type != expected) {
-    printf("\033[1;33m** Syntax error, expecting: ");
+    printf("\033[1;35m** Syntax error, expecting: ");
     getMacro(expected);
     printf("** instead of: " );
     getMacro(token.type);
-    printf("\033[0m");
+    printf("in line\033[0m %d \033[1;35mand column \033[0m%d \033[0m\n",nbl,nbc);
     exit(-1);
   }
   else{
@@ -119,8 +122,8 @@ void subprogram_specification() {
   switch (token.type) {
     case T_procedure: scanToken(); matchToken(T_IDENTIFIER); if(token.type == T_PO) {matchToken(T_PO); formal_part(); matchToken(T_PF);} break;
     case T_function: scanToken(); matchToken(T_IDENTIFIER); if(token.type == T_PO) {matchToken(T_PO); formal_part(); matchToken(T_PF);}  matchToken(T_return);  matchToken(T_IDENTIFIER); break;
-    default: printf("\033[1;33mSubprogram specification error. Expecting T_procedure, T_function instead of: \033[0m");
-             getMacro(token.type); exit(-1);
+    default: printf("\033[1;35mSubprogram specification error. Expecting T_procedure, T_function instead of: \033[0m");
+             getMacro(token.type);printf("\033[1;35min line \033[0m%d \033[1;35mand column \033[0m%d\n",nbl,nbc); exit(-1);
   }
 }
 
@@ -193,7 +196,7 @@ void statement() {
     case T_procedure: case T_return:  simple_statement(); break;
     case T_if: case T_case :  case T_declare:case T_begin:
     case T_loop: case T_while: case T_for: compound_statement(); break;
-    default: printf("Invalide starting statement syntax: ");getMacro(token.type);exit(-1);
+    default: printf("\033[1;35mInvalide starting statement syntax: ");printf("in line \033[0m%d \033[1;35mand column \033[0m%d\n",nbl,nbc);getMacro(token.type);exit(-1);
 
   }
 
@@ -218,8 +221,8 @@ void simple_statement() {
     case T_goto: goto_statement(); break;
     case T_return: return_statement(); break;
     default:
-    printf("\033[1;33mSyntax error expecting one of the following tokens: T_null, T_IDENTIFIER, T_exit, T_goto, T_procedure, T_return, T_requeue, T_delay, T_abort, T_raise instead of :");
-    getMacro(token.type); exit(-1);
+    printf("\033[1;35mSyntax error expecting one of the following tokens: T_null, T_IDENTIFIER, T_exit, T_goto, T_procedure, T_return, T_requeue, T_delay, T_abort, T_raise instead of :");
+    getMacro(token.type);printf("\033[1;35min line \033[0m%d \033[1;35mand column \033[0m%d\n",nbl,nbc); exit(-1);
   }
 }
 /*
@@ -238,8 +241,8 @@ void compound_statement() {
     case T_case : case_statement(); break;
     case T_loop: case T_while: case T_for: loop_statement(); break;
     case T_declare: case T_begin: block_statement(); break;
-    default :printf("\033[1;33mSyntax error expecting one of the following tokens: T_if, T_case, T_loop, T_while, T_for, T_declare instead of :");
-            getMacro(token.type);exit(-1);
+    default :printf("\033[1;35mSyntax error expecting one of the following tokens: T_if, T_case, T_loop, T_while, T_for, T_declare instead of :");
+            getMacro(token.type);printf("\033[1;35min line \033[0m%d \033[1;35mand column \033[0m%d\n",nbl,nbc);exit(-1);
   }
 }
 
@@ -343,8 +346,8 @@ void case_statement_alt() {
     		  matchToken(T_2PT);/*matchToken(T_EG); matchToken(T_SUP);*/list_inst_tmp=list_inst; list_inst=NULL; sequence_statement(); list_inst_case=list_inst; list_inst=list_inst_tmp;  c[nbCase].ast=astCase;
   			 c[nbCase].caselinst=list_inst_case; nbCase++;break;
     case T_others: scanToken();matchToken(T_2PT); /*matchToken(T_EG); matchToken(T_SUP);*/list_inst_tmp=list_inst; list_inst=NULL; sequence_statement(); list_inst_other=list_inst; list_inst=list_inst_tmp;break;
-    default :printf("\033[1;33mSyntax error expecting one of the following tokens: T_null, T_NUMERIC, T_STRING, T_PO, T_IDENTIFIER, T_others instead of :");
-            getMacro(token.type);exit(-1);
+    default :printf("\033[1;35mSyntax error expecting one of the following tokens: T_null, T_NUMERIC, T_STRING, T_PO, T_IDENTIFIER, T_others instead of :");
+            getMacro(token.type);printf("\033[1;35min line \033[0m%d \033[1;35mand column \033[0m%d\n",nbl,nbc);exit(-1);
   }
 }
 // case_statement_alts ::= case_statement_alt case_statement_alts  | e
@@ -386,16 +389,24 @@ void loop_statement() {
 	    	int i=0; 
 			while(strcmp(TS[i].name,token.val.stringValue)!=0 && i<n)i++;
 			if(i>=n){
-				fprintf(stderr, "\033[0;31mthe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is not declared \033[0m\n",token.val.stringValue);exit(-1);
+				fprintf(stderr, "\033[0;31mthe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is not declared \033[0m\n",token.val.stringValue);
+				printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+				exit(-1);
 			}
 			else if(TS[i].type==1){
-				fprintf(stderr, "\033[0;31mthe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is Float, variable in for loop must be Integer\033[0m \n",token.val.stringValue);exit(-1);
+				fprintf(stderr, "\033[0;31mthe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is Float, variable in for loop must be Integer\033[0m \n",token.val.stringValue);
+				printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+				exit(-1);				
 			}
 			else if(TS[i].type==2){
-				fprintf(stderr, "\033[0;31mthe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is Double, variable in for loop must be Integer\033[0m \n",token.val.stringValue);exit(-1);
+				fprintf(stderr, "\033[0;31mthe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is Double, variable in for loop must be Integer\033[0m \n",token.val.stringValue);
+				printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+				exit(-1);
 			}
 			else if(TS[i].type==3){
-				fprintf(stderr, "\033[0;31mthe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is Boolean, variable in for loop must be Integer\033[0m \n",token.val.stringValue);exit(-1);
+				fprintf(stderr, "\033[0;31mthe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is Boolean, variable in for loop must be Integer\033[0m \n",token.val.stringValue);
+				printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+				exit(-1);
 			}
 
 	//------------------------------------------------------------------------------------------------------------------------------------
@@ -484,7 +495,7 @@ void basic_declaration() {
   switch (token.type) {
     case T_type: type_declaration(); break;
     case T_IDENTIFIER:object_number_declaration(); break;
-    default: printf("Unknown declaration method \n"); exit(-1);
+    default: printf("\033[0;31mUnknown declaration method \n");printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc); exit(-1);
   }
 }
 
@@ -503,8 +514,8 @@ void type_declaration() {
         case T_digits: real_type_definition(); break;
         case T_array: array_type_definition(); break;
         case T_null: case T_record: record_type_definition(); break;
-        default: printf("\033[1;33mExpecting one of the following T_PO ,T_mod ,T_range ,T_digits ,T_array ,T_null, T_IDENTIFIER instead of: ");
-                 getMacro(token.type); exit(-1);
+        default: printf("\033[1;35mExpecting one of the following T_PO ,T_mod ,T_range ,T_digits ,T_array ,T_null, T_IDENTIFIER instead of: ");
+                 getMacro(token.type);printf("\033[1;35min line \033[0m%d \033[1;35mand column \033[0m%d\n",nbl,nbc); exit(-1);
 
   }
   matchToken(T_PV);
@@ -565,8 +576,8 @@ void enumeration_literal_specification() {
   switch (token.type) {
     case T_IDENTIFIER: matchToken(T_IDENTIFIER); break;
     case T_CHAR:  matchToken(T_CHAR); break;
-    default: printf("\033[1;33mExpecting one of the following T_IDENTIFIER, T_CHAR instead of:");
-             getMacro(token.type); exit(-1);
+    default: printf("\033[1;35mExpecting one of the following T_IDENTIFIER, T_CHAR instead of:");
+             getMacro(token.type);printf("\033[1;35min line \033[0m%d \033[1;35mand column \033[0m%d\n",nbl,nbc);printf("\033[1;35min line \033[0m%d \033[1;35mand column \033[0m%d\n",nbl,nbc); exit(-1);
 
   }
 }
@@ -580,8 +591,8 @@ void integer_type_definition() {
   switch (token.type) {
     case T_range:scanToken(); matchToken(T_NUMERIC); matchToken(T_PT); matchToken(T_PT); matchToken(T_NUMERIC); break;
     case T_mod:  scanToken(); matchToken(T_mod); expression(); break;
-    default :printf("\033[1;33mExpecting one of the following T_range, T_mod instead of:");
-             getMacro(token.type); exit(-1);
+    default :printf("\033[1;35mExpecting one of the following T_range, T_mod instead of:");
+             getMacro(token.type);printf("\033[1;35min line \033[0m%d \033[1;35mand column \033[0m%d\n",nbl,nbc); exit(-1);
   }
 }
 /*
@@ -630,7 +641,9 @@ void array_type_definition() {
 
       //Semantique--------------------------------------------------------------------------------------------------
       		bSup=atoi(token.val.stringValue);
-      		if(bSup<bInf){fprintf(stderr,"\033[1;36m\033[4;36m%d\033[0m\033[0;31m \033[0;31mis lower than \033[1;36m\033[4;36%d\033[0m\033[0;31m in the array type definition\033[0m\n",bSup,bInf);exit(-1);}
+      		if(bSup<bInf){fprintf(stderr,"\033[1;36m\033[4;36m%d\033[0m\033[0;31m \033[0;31mis lower than \033[1;36m\033[4;36%d\033[0m\033[0;31m in the array type definition\033[0m\n",bSup,bInf);
+      		printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+      		exit(-1);}
       //------------------------------------------------------------------------------------------------------------
 
       		Decl[nbDecl].array=1;
@@ -719,7 +732,9 @@ void object_number_declaration() {
   //semantique----------------------------
   int i;
   for(i=0;i<n;i++){
-  	if(strcmp(TS[i].name,nomToken)==0){fprintf(stderr, "\033[0;31mThe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis declared twice\033[0m \n",nomToken);exit(-1);;exit(-1);}
+  	if(strcmp(TS[i].name,nomToken)==0){fprintf(stderr, "\033[0;31mThe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis declared twice\033[0m \n",nomToken);
+  	printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+  	exit(-1);}
   }
   //------------------------------------
   
@@ -742,7 +757,9 @@ void object_number_declaration() {
 				}
 			}
 		}
-		if(i>=nbDecl){fprintf(stderr,"\033[1;36m\033[4;36m%s\033[0m\033[0;31 is not a type !!\033[0m\n",token.val.stringValue);exit(-1);}
+		if(i>=nbDecl){fprintf(stderr,"\033[1;36m\033[4;36m%s\033[0m\033[0;31 is not a type !!\033[0m\n",token.val.stringValue);
+		printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+		exit(-1);}
 	}   
   //----------------------------------------------------------
 
@@ -765,8 +782,8 @@ void object_number_declaration() {
   switch (token.type) {
     case T_IDENTIFIER: matchToken(T_IDENTIFIER); break;
     case T_constant : matchToken(T_constant); break;
-    default: printf("Expecting one of the following: T_constant T_IDENTIFIER instead of");
-             getMacro(token.type); exit(-1);
+    default: printf("\033[1;35mExpecting one of the following: T_constant T_IDENTIFIER instead of");
+             getMacro(token.type);printf("\033[1;35min line \033[0m%d \033[1;35mand column \033[0m%d\n",nbl,nbc); exit(-1);
   }
   if(TS[n-1].type!=4){
 	  matchToken(T_ASSIGN);
@@ -775,7 +792,9 @@ void object_number_declaration() {
 
 	  		//Semantique------------------------------------------------------
 	  			if(TS[n-1].type!=3){
-	  				fprintf(file,"\033[0;31mThe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is not a Boolean!\033[0m\n",TS[n-1].name);exit(-1);
+	  				fprintf(file,"\033[0;31mThe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is not a Boolean!\033[0m\n",TS[n-1].name);
+	  				printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+	  				exit(-1);
 	  			}
 	  		//-----------------------------------------------------------------
 	  }
@@ -784,7 +803,9 @@ void object_number_declaration() {
 
 	  		//Semantique------------------------------------------------------
 	  			if(TS[n-1].type!=3){
-	  				fprintf(file,"\033[0;31mThe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is not a Boolean!\033[0m\n",TS[n-1].name);exit(-1);
+	  				fprintf(file,"\033[0;31mThe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is not a Boolean!\033[0m\n",TS[n-1].name);
+	  				printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+	  				exit(-1);
 	  			}
 	  		//-----------------------------------------------------------------
 	  }
@@ -856,7 +877,9 @@ void param() {
 	  int i=0;
 	  while(strcmp(TS[i].name,nomToken)!=0 && i<n)i++;
 	  if(i>=n){
-				fprintf(stderr, "\033[0;31mthe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis not declared \033[0m \n",nomToken);exit(-1);
+				fprintf(stderr, "\033[0;31mthe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis not declared \033[0m \n",nomToken);
+				printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+				exit(-1);
 	  }
   //------------------------------------
 
@@ -940,14 +963,18 @@ void procedure_call_or_assign_statement() {
 	    	int i=0; 
 			while(strcmp(TS[i].name,nomVariable)!=0 && i<n)i++;
 			if(i>=n){
-				fprintf(stderr, "\033[0;31mthe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis not declared \033[0m \n",nomVariable);exit(-1);
+				fprintf(stderr, "\033[0;31mthe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis not declared \033[0m \n",nomVariable);
+				printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+				exit(-1);
 			}
 			else if(strcmp(token.val.stringValue,"false")==0){
 				ast=creer_feuille_nombre(0,3);
 
 				//Semantique------------------------------------------------------
 		  			if(TS[indexVar(nomVariable,TS,n)].type!=3){
-		  				printf("\033[0;31mThe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is not a Boolean!\033[0m\n",TS[indexVar(nomVariable,TS,n)].name);exit(-1);
+		  				printf("\033[0;31mThe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is not a Boolean!\033[0m\n",TS[indexVar(nomVariable,TS,n)].name);
+		  				printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+		  				exit(-1);
 		  			}
 	  			//-----------------------------------------------------------------
 		  			scanToken();
@@ -957,7 +984,9 @@ void procedure_call_or_assign_statement() {
 
 				//Semantique------------------------------------------------------
 		  			if(TS[indexVar(nomVariable,TS,n)].type!=3){
-		  				printf("\033[0;31mThe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is not a Boolean!\033[0m\n",TS[indexVar(nomVariable,TS,n)].name);exit(-1);
+		  				printf("\033[0;31mThe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is not a Boolean!\033[0m\n",TS[indexVar(nomVariable,TS,n)].name);
+		  				printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+		  				exit(-1);
 		  			}
 		  		//-----------------------------------------------------------------
 		  			scanToken();
@@ -995,7 +1024,9 @@ void procedure_call_or_assign_statement() {
                
 	       		//Semantique---------------------------------------------------------------
 		    		if(TS[indexVar(token.val.stringValue,TS,n)].type!=0 && isArray==1){
-		    			fprintf(stderr,"\033[0;31mThe index of an array must be Integer\033[0m\n");exit(-1);
+		    			fprintf(stderr,"\033[0;31mThe index of an array must be Integer\033[0m\n");
+		    			printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+		    			exit(-1);
 		    		}
 		    	//-------------------------------------------------------------------------
 
@@ -1034,7 +1065,9 @@ void procedure_call_or_assign_statement() {
 
 		       //Semantique--------------------------------------------------------		       
 			     	if(isArray==0){
-			     		fprintf(stderr,"\033[1;36m\033[4;36m %s \033[0m\033[0;31m \033[0;31mis not an array !!\033[0m\n",nameArray);exit(-1);
+			     		fprintf(stderr,"\033[1;36m\033[4;36m %s \033[0m\033[0;31m \033[0;31mis not an array !!\033[0m\n",nameArray);
+			     		printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+			     		exit(-1);
 			     	}
 		       //------------------------------------------------------------------		
 
@@ -1045,7 +1078,9 @@ void procedure_call_or_assign_statement() {
 		    	if(token.type == T_IDENTIFIER){
 					while(strcmp(TS[i].name,token.val.stringValue)!=0 && i<n)i++;
 					if(i>=n){
-						fprintf(stderr, "\033[0;31mthe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis not declared \033[0m \n",nomVariable);exit(-1);
+						fprintf(stderr, "\033[0;31mthe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis not declared \033[0m \n",nomVariable);
+						printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+						exit(-1);
 					}
 					else expression();
 				}	
@@ -1054,7 +1089,9 @@ void procedure_call_or_assign_statement() {
 
 					//Semantique------------------------------------------------------
 			  			if(TS[indexVar(nomVariable,TS,n)].value!=3){ //for arrays value is a type !!
-			  				printf("\033[0;31mthe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is not a Boolean!\033[0m\n",TS[indexVar(nomVariable,TS,n)].name);exit(-1);
+			  				printf("\033[0;31mthe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is not a Boolean!\033[0m\n",TS[indexVar(nomVariable,TS,n)].name);
+			  				printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+			  				exit(-1);
 			  			}
 		  			//-----------------------------------------------------------------
 			  			scanToken();
@@ -1064,7 +1101,9 @@ void procedure_call_or_assign_statement() {
 
 					//Semantique------------------------------------------------------
 			  			if(TS[indexVar(nomVariable,TS,n)].value!=3){ //for arrays value is a type !!
-			  				printf("\033[0;31mThe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is not a Boolean!\033[0m\n",TS[indexVar(nomVariable,TS,n)].name);exit(-1);
+			  				printf("\033[0;31mThe variable \033[1;36m\033[4;36m%s\033[0m\033[0;31 is not a Boolean!\033[0m\n",TS[indexVar(nomVariable,TS,n)].name);
+			  				printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+			  				exit(-1);
 			  			}
 			  		//-----------------------------------------------------------------
 			  			scanToken();
@@ -1145,7 +1184,9 @@ void simple_expression() {
     case T_IDENTIFIER: //semantique----------------------------
 						  while(strcmp(TS[i].name,token.val.stringValue)!=0 && i<n)i++;
 						  if(i>=n && strcmp(token.val.stringValue,"false")!=0 && strcmp(token.val.stringValue,"true")!=0){
-								fprintf(stderr, "\033[0;31mthe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis not declared \033[0m \n",token.val.stringValue);exit(-1);
+								fprintf(stderr, "\033[0;31mthe variable\033[1;36m\033[4;36m %s \033[0m\033[0;31mis not declared \033[0m \n",token.val.stringValue);
+								printf("in line \033[0m%d \033[0;31mand column \033[0m%d\n",nbl,nbc);
+								exit(-1);
 							}
 							else if(strcmp(token.val.stringValue,"false")==0){ast=creer_feuille_nombre(0,3);}
 							else if(strcmp(token.val.stringValue,"true")==0){ast=creer_feuille_nombre(1,3);}
@@ -1171,7 +1212,7 @@ void simple_expression() {
                         else ast->noeud.op.expression_droite=creer_feuille_idf(token.val.stringValue, TS[i].type); 
                      }   
                      term(); term_cat(); break;
-    default: printf("\033[1;33mExpecting : T_NULL, T_NUMERIC, T_STRING, T_PO, T_IDENTIFIER instead of ");getMacro(token.type); exit(-1);
+    default: printf("\033[1;35mExpecting : T_NULL, T_NUMERIC, T_STRING, T_PO, T_IDENTIFIER instead of ");getMacro(token.type);printf("\033[1;35min line \033[0m%d \033[1;35mand column \033[0m%d\n",nbl,nbc); exit(-1);
   }
 }
 //
@@ -1213,7 +1254,7 @@ void primary() {
     case T_STRING:
     case T_IDENTIFIER: scanToken(); break;
     case T_PO:  scanToken(); expression(); matchToken(T_PF);   break;
-    default: printf("\033[1;33mExpecting :T_NULL, T_NUMERIC, T_STRING, T_PO, T_IDENTIFIER instead of ");getMacro(token.type); exit(-1);
+    default: printf("\033[1;35mxpecting :T_NULL, T_NUMERIC, T_STRING, T_PO, T_IDENTIFIER instead of ");getMacro(token.type);printf("\033[1;35min line \033[0m%d \033[1;35mand column \033[0m%d\n",nbl,nbc); exit(-1);
   }
 
 }
@@ -1229,8 +1270,8 @@ void factor() {
                       break;
     case T_abs:
     case T_not:    primary(); break;
-    default: printf("\033[1;33mExpecting : T_abs, T_not, T_NULL, T_NUMERIC, T_STRING, T_PO, T_IDENTIFIER instead of: " );
-              getMacro(token.type); exit(-1);
+    default: printf("\033[1;35mExpecting : T_abs, T_not, T_NULL, T_NUMERIC, T_STRING, T_PO, T_IDENTIFIER instead of: " );
+              getMacro(token.type);printf("\033[1;35min line \033[0m%d \033[1;35mand column \033[0m%d\n",nbl,nbc); exit(-1);
   }
 }
 

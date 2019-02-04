@@ -8,7 +8,9 @@
 // numeric | comment | strings | identifier | specialKey(Op) | CHAR
 //--------------------------------------------------
 
-
+int nbl=1;
+int nbc=1;
+int savenbc;
 
 
 
@@ -64,9 +66,15 @@ int isReserved(char * strn) {
 
 void rmSpace() {
   char c = fgetc(fp);
-  while(c == ' ' || c == '\n'|| c == '\t'|| c == '\r')
-    c = fgetc(fp);
+  while(c == ' ' || c == '\n'|| c == '\t'|| c == '\r'){
+  	if(c=='\n'){nbl++;nbc=1;}
+  	else {savenbc=nbc;nbc++;}
+  	c = fgetc(fp);
+  }
+
   ungetc(c, fp);
+  
+
 }
 
 // operators:---------------------------- detects also comments
@@ -76,7 +84,7 @@ void operators() {
   rmSpace();
   memset(str, '\0' , 1024);
   i = 0;
-  char c = fgetc(fp);
+  char c = fgetc(fp);savenbc=nbc++;
 
   if (c == EOF) {
     token.type = c;
@@ -85,9 +93,9 @@ void operators() {
   }
   if(c == '\'') {
     str[i] = c; i++;
-    char cc  = fgetc(fp);
+    char cc  = fgetc(fp);savenbc=nbc++;
     str[i] = cc; i++;
-    c  = fgetc(fp);
+    c  = fgetc(fp);savenbc=nbc++;
     if(c == '\'') {
       str[i] = c; i++;
       token.type = 334;
@@ -97,13 +105,17 @@ void operators() {
 
     }else {
       ungetc(c,fp);
+      if(nbc>1)nbc--;
+  	  else {nbl--;nbc=savenbc;}
       ungetc(cc,fp);
+      if(nbc>1)nbc--;
+  	  else {nbl--;nbc=savenbc;}
 
     }
   }
   if(c == '<' || c == '>' || c == '/' || c == ':' || c == '*' || c == '-') {
     str[i] = c; i++;
-    char cc  = fgetc(fp);
+    char cc  = fgetc(fp);savenbc=nbc++;
     if(cc == '=') {
       str[i] = cc; i++;
 
@@ -119,11 +131,17 @@ void operators() {
       strcpy(token.val.stringValue,str);
     } else if(cc == '-') {
       ungetc(cc,fp);
+      if(nbc>1)nbc--;
+ 	  else {nbl--;nbc=savenbc;}
       ungetc(c,fp);
+      if(nbc>1)nbc--;
+  	  else {nbl--;nbc=savenbc;}
       comment();
     }
     else {
       ungetc(cc,fp);
+      if(nbc>1)nbc--;
+  	  else {nbl--;nbc=savenbc;}
       token.type = c;
       strcpy(token.val.stringValue,str);
     }
@@ -139,6 +157,8 @@ void operators() {
                 break;
       default:
               ungetc(c,fp);
+              if(nbc>1)nbc--;
+  			  else {nbl--;nbc=savenbc;}
     }
   }
   memset(str, '\0' , 1024);
@@ -156,7 +176,7 @@ void operators() {
 // digits ::=  digit digits | _digit digits | e
 
 int digits() {
-  char c = fgetc(fp);
+  char c = fgetc(fp);nbc++;
 
   if(isdigit(c)) {
     str[i] = c; i++;
@@ -164,7 +184,7 @@ int digits() {
   }
   else if(c == '_') {
     str[i] = c; i++;
-    c = fgetc(fp);
+    c = fgetc(fp);savenbc=nbc++;
     str[i] = c; i++;
     if(isdigit(c)) {
       digits();
@@ -172,12 +192,16 @@ int digits() {
       int j;
       for (j = strlen(str) - 1; j >= 0; j--) {
         ungetc(str[j],fp);
+        if(nbc>1)nbc--;
+        else {nbl--;nbc=savenbc;}
       }
       return 0;
     }
   }
   else {
     ungetc(c,fp);
+    if(nbc>1)nbc--;
+    else {nbl--;nbc=savenbc;}
     return 1;
   }
 
@@ -185,13 +209,15 @@ int digits() {
 
 int numeral() {
   int result = 1;
-  char c = fgetc(fp);
+  char c = fgetc(fp);savenbc=nbc++;
   if(isdigit(c)) {
     str[i] = c; i++;
     result = digits();
   }
   else {
     ungetc(c,fp);
+    if(nbc>1)nbc--;
+    else {nbl--;nbc=savenbc;}
     return 0;
   }
   return result;
@@ -202,22 +228,26 @@ void decimal_literal() {
   int result = numeral();
   int in = 0;
   int clear = 0;
-  char c = fgetc(fp);
+  char c = fgetc(fp);savenbc=nbc++;
 
 
   //traitement des Label !!-----------------------------------------------------------
   if(c=='<'){
-      c = fgetc(fp);
+      c = fgetc(fp);savenbc=nbc++;
       if(c=='<'){
           int i=0;
-          c=fgetc(fp);
-          while(c!=' ' && c!='\r' && c!='\n' ){token.val.stringValue[i]=c;c=fgetc(fp);i++;}
-          if(token.val.stringValue[i-1]!='>' || token.val.stringValue[i-1]!='>')printf("Label must finish with : >>");
+          c=fgetc(fp);savenbc=nbc++;
+          while(c!=' ' && c!='\r' && c!='\n' ){token.val.stringValue[i]=c;c=fgetc(fp);savenbc=nbc++;i++;}
+          if(c=='\n'){
+          	nbc=savenbc;
+          	nbl++;
+          }
+          if(token.val.stringValue[i-1]!='>' || token.val.stringValue[i-1]!='>')printf("\033[1;33mLabel must finish with : >>");exit(-1);
           token.val.stringValue[i-2]='\0';
           label();
           decimal_literal();
       }
-      else {ungetc(c,fp);c='<';}
+      else {ungetc(c,fp);c='<';if(nbc>1)nbc--;else {nbl--;nbc=savenbc;}}
   }
   //-----------------------------------------------------------------------------------
 
@@ -227,16 +257,18 @@ void decimal_literal() {
     in = 1;
     if(!numeral()) {
       ungetc(c,fp);
+      if(nbc>0)nbc--;
+      else {nbl--;nbc=savenbc;}
       str[i-1] ='\0';
     };
   }
   if(c == 'E' && result) {
     str[i] = c; i++;
     in = 1;
-    c = fgetc(fp);
+    c = fgetc(fp);savenbc=nbc++;
     if(c == '+' || c == '-')  {
       str[i] = c; i++;
-    }else ungetc(c,fp);
+    }else {ungetc(c,fp);if(nbc>1)nbc--;else {nbl--;nbc=savenbc;}}
     if(!numeral()){
       clear = 1;
       result = 0;
@@ -251,8 +283,10 @@ void decimal_literal() {
       int j;
       for(j = strlen(str) - 1; j >= 0; j--) {
         ungetc(str[j],fp);
+        if(nbc>1)nbc--;
+        else {nbl--;nbc=savenbc;};
       }
-    }else ungetc(c,fp);
+    }else {ungetc(c,fp);if(nbc>1)nbc--;else {nbl--;nbc=savenbc;}}
   }
   i = 0;
   memset(str, '\0' , 1024);
@@ -267,26 +301,32 @@ int comment() {
   rmSpace();
   str = calloc(1024 , sizeof(char));
   i = 0;
-  char c = fgetc(fp);
+  char c = fgetc(fp);savenbc=nbc++;
   if(c == '-'){
     str[i] = c; i++;
-    c = fgetc(fp);
+    c = fgetc(fp);savenbc=nbc++;
     if(c == '-') {
       str[i] = c; i++;
       while(c != '\n') {
-        c = fgetc(fp);
+        c = fgetc(fp);savenbc=nbc++;
         str[i] = c; i++;
       }
+      nbl++;
+      nbc=1;
       //str[i] = '\0';
       token.type = T_COMMENT;
       strcpy(token.val.stringValue,str);
     }
     else {
       ungetc(c,fp);
+      if(nbc>1)nbc--;
+      else {nbl--;nbc=savenbc;}
       str[i] = '\0';
     }
   }else{
     ungetc(c,fp);
+    if(nbc>1)nbc--;
+    else {nbl--;nbc=savenbc;}
   }
   memset(str, '\0' , 1024);
 }
@@ -298,23 +338,29 @@ int string_element() {
   char c = fgetc(fp);
   if(c == '"'){
     str[i] = c; i++;
-    c = fgetc(fp);
+    c = fgetc(fp);savenbc=nbc++;
     if(c == '"'){
       str[i] = c; i++;
       string_element();
     }else {
       i = i-1;
       ungetc(c,fp);
+      if(nbc>1)nbc--;
+      else {nbl--;nbc=savenbc;}
       ungetc('"',fp);
+      if(nbc>1)nbc--;
+      else {nbl--;nbc=savenbc;}
       return -1;
     }
   }
   else{
     while(c != '"' && c != '\n') {
       str[i] = c; i++;
-      c = fgetc(fp);
+      c = fgetc(fp);savenbc=nbc++;
     }
     ungetc(c,fp);
+    if(nbc>1)nbc--;
+    else {nbl--;nbc=savenbc;}
     if(c == '"') {
       string_element();
     }
@@ -326,11 +372,11 @@ int string_element() {
 int string_literal() {
     rmSpace();
     i = 0;
-    char c = fgetc(fp);
+    char c = fgetc(fp);savenbc=nbc++;
     if(c == '"') {
       str[i] = c; i++;
       string_element();
-      c = fgetc(fp);
+      c = fgetc(fp);savenbc=nbc++;
 
       if(c == '"') {
         str[i] = c; i++;
@@ -343,10 +389,14 @@ int string_literal() {
         int j;
         for(j = strlen(str); j >= 0; j--) {
           ungetc(str[j],fp);
+          if(nbc>1)nbc--;
+          else {nbl--;nbc=savenbc;}
         }
       }
     }
     ungetc(c,fp);
+    if(nbc>1)nbc--;
+    else {nbl--;nbc=savenbc;}
     memset(str, '\0' , 1024);
     return -1;
 }
@@ -358,16 +408,16 @@ int string_literal() {
 int identifier_name() {
   rmSpace();
   i = 0;
-  char c = fgetc(fp);
+  char c = fgetc(fp);savenbc=nbc++;
   if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
     str[i] = c; i++;
-    c = fgetc(fp);
+    c = fgetc(fp);savenbc=nbc++;
     while((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || isdigit(c)) {
       str[i] = c; i++;
-      c = fgetc(fp);
+      c = fgetc(fp);savenbc=nbc++;
       if(c == '_') {
         str[i] = c; i++;
-        c = fgetc(fp);
+        c = fgetc(fp);savenbc=nbc++;
       }
       else {
         continue;
@@ -378,9 +428,13 @@ int identifier_name() {
     else token.type = T_IDENTIFIER;
     strcpy(token.val.stringValue,str);
     ungetc(c ,fp);
+    if(nbc>1)nbc--;
+    else {nbl--;nbc=savenbc;}
   }
   else {
     ungetc(c ,fp);
+    if(nbc>1)nbc--;
+    else {nbl--;nbc=savenbc;}
   }
   memset(str, '\0' , 1024);
 }
