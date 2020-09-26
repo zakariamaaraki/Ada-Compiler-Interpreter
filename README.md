@@ -70,8 +70,9 @@ primary -> T_NULL | T_STRING | id | T_NUMERIC | '(' expression ')'
 ## Compile to pseudo code
 ```
 gcc fun_syn_test.c types.h pseudoCode.h pile.h lex.h ast.h ada.h -o compiler
-./compiler // this command will read source code from dummy.txt and generate a pseudo code file named generer.txt 
+./compiler
 ```
+this command will read source code from dummy.txt and generate a pseudo code file named generer.txt
 
 ## The pseudo code interpreter
 ```
