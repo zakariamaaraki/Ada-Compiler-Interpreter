@@ -83,4 +83,4 @@ gcc machine.c pile.h pseudoCode.h -o interpreter
 
 ## Authors
 
-* **Zakaria Maaraki** - *Initial work* - [BrolyCode](https://github.com/BrolyCode)
+* **Zakaria Maaraki** - *Initial work* - [zakariamaaraki](https://github.com/zakariamaaraki)
